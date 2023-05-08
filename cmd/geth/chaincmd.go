@@ -65,9 +65,8 @@ It expects the genesis file as argument.`,
 		ArgsUsage: "",
 		Flags: []cli.Flag{
 			utils.MainnetFlag,
-			utils.RopstenFlag,
-			utils.RinkebyFlag,
-			utils.GoerliFlag,
+			utils.BaklavaFlag,
+			utils.AlfajoresFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -80,6 +79,8 @@ The dumpgenesis command dumps the genesis block configuration in JSON format to 
 		ArgsUsage: "<filename> (<filename 2> ... <filename N>) ",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.AlfajoresFlag,
+			utils.BaklavaFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
 			utils.GCModeFlag,
@@ -117,6 +118,8 @@ processing will proceed even if an individual RLP-file import failure occurs.`,
 		ArgsUsage: "<filename> [<blockNumFirst> <blockNumLast>]",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.AlfajoresFlag,
+			utils.BaklavaFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
 		},
@@ -135,6 +138,8 @@ be gzipped.`,
 		ArgsUsage: "<datafile>",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.AlfajoresFlag,
+			utils.BaklavaFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
 		},
@@ -149,6 +154,8 @@ be gzipped.`,
 		ArgsUsage: "<dumpfile>",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.AlfajoresFlag,
+			utils.BaklavaFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
 		},
@@ -163,6 +170,8 @@ The export-preimages command export hash preimages to an RLP encoded stream`,
 		ArgsUsage: "[? <blockHash> | <blockNum>]",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.AlfajoresFlag,
+			utils.BaklavaFlag,
 			utils.CacheFlag,
 			utils.IterativeOutputFlag,
 			utils.ExcludeCodeFlag,
@@ -219,7 +228,7 @@ func dumpGenesis(ctx *cli.Context) error {
 	// TODO(rjl493456442) support loading from the custom datadir
 	genesis := utils.MakeGenesis(ctx)
 	if genesis == nil {
-		genesis = core.DefaultGenesisBlock()
+		genesis = core.MainnetGenesisBlock()
 	}
 	if err := json.NewEncoder(os.Stdout).Encode(genesis); err != nil {
 		utils.Fatalf("could not encode genesis")

@@ -65,9 +65,10 @@ func setDefaults(cfg *Config) {
 			ConstantinopleBlock: new(big.Int),
 			PetersburgBlock:     new(big.Int),
 			IstanbulBlock:       new(big.Int),
-			MuirGlacierBlock:    new(big.Int),
-			BerlinBlock:         new(big.Int),
-			LondonBlock:         new(big.Int),
+			ChurritoBlock:       new(big.Int),
+			DonutBlock:          new(big.Int),
+			EspressoBlock:       new(big.Int),
+			GForkBlock:          new(big.Int),
 		}
 	}
 

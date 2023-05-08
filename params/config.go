@@ -127,31 +127,49 @@ var (
 		},
 	}
 
+	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
+	// and accepted by the Ethereum core developers into the Ethash consensus.
+	AllEthashProtocolChanges = &ChainConfig{
+		ChainID:                       big.NewInt(1337),
+		HomesteadBlock:                big.NewInt(0),
+		DAOForkBlock:                  nil,
+		DAOForkSupport:                false,
+		EIP150Block:                   big.NewInt(0),
+		EIP155Block:                   big.NewInt(0),
+		EIP158Block:                   big.NewInt(0),
+		ByzantiumBlock:                big.NewInt(0),
+		ConstantinopleBlock:           big.NewInt(0),
+		PetersburgBlock:               big.NewInt(0),
+		IstanbulBlock:                 big.NewInt(0),
+		Ethash:                        new(EthashConfig),
+		Clique:                        nil,
+	}
+
 	DeveloperChainConfig = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), big.NewInt(0), nil, nil, &IstanbulConfig{
 		Epoch:          300,
 		ProposerPolicy: 0,
 		RequestTimeout: 1000,
 		BlockPeriod:    1,
-	}, true, false}
+	}, true, false, nil, nil}
 
 	IstanbulTestChainConfig = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), nil, nil, nil, &IstanbulConfig{
 		Epoch:          300,
 		ProposerPolicy: 0,
 		RequestTimeout: 1000,
 		BlockPeriod:    1,
-	}, true, false}
+	}, true, false, nil, nil}
 
 	IstanbulEHFTestChainConfig = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), &IstanbulConfig{
 		Epoch:          300,
 		ProposerPolicy: 0,
 		RequestTimeout: 1000,
 		BlockPeriod:    1,
-	}, true, false}
+	}, true, false, nil, nil}
 
 	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), nil, nil, nil, &IstanbulConfig{
 		Epoch:          30000,
 		ProposerPolicy: 0,
-	}, true, true}
+	}, true, true, nil, nil}
 	TestRules = TestChainConfig.Rules(new(big.Int))
 )
 
@@ -242,6 +260,9 @@ type ChainConfig struct {
 
 	// Requests mock engine if true
 	Faker bool `json:"faker,omitempty"`
+	// Various consensus engines
+	Ethash *EthashConfig `json:"ethash,omitempty"`
+	Clique *CliqueConfig `json:"clique,omitempty"`
 }
 
 // IstanbulConfig is the consensus engine configs for Istanbul based sealing.
@@ -257,10 +278,24 @@ type IstanbulConfig struct {
 	// number.
 	RequestTimeout uint64 `json:"requesttimeout,omitempty"`
 }
-
 // String implements the stringer interface, returning the consensus engine details.
 func (c *IstanbulConfig) String() string {
 	return "istanbul"
+}
+
+// EthashConfig is the consensus engine configs for proof-of-work based sealing.
+type EthashConfig struct{}
+func (c *EthashConfig) String() string {
+	return "ethash"
+}
+
+// CliqueConfig is the consensus engine configs for proof-of-authority based sealing.
+type CliqueConfig struct {
+	Period uint64 `json:"period"` // Number of seconds between blocks to enforce
+	Epoch  uint64 `json:"epoch"`  // Epoch length to reset votes and checkpoint
+}
+func (c *CliqueConfig) String() string {
+	return "clique"
 }
 
 // String implements the fmt.Stringer interface.
@@ -360,6 +395,20 @@ func (c *ChainConfig) IsDonut(num *big.Int) bool {
 // IsEspresso returns whether num represents a block number after the Espresso fork
 func (c *ChainConfig) IsEspresso(num *big.Int) bool {
 	return isForked(c.EspressoBlock, num)
+}
+// The features from Berlin and London are included in the Espresso fork
+func (c *ChainConfig) IsBerlin(num *big.Int) bool {
+	return isForked(c.EspressoBlock, num)
+}
+func (c *ChainConfig) IsLondon(num *big.Int) bool {
+	return isForked(c.EspressoBlock, num)
+}
+
+func (c *ChainConfig) IsCatalyst(num *big.Int) bool {
+	return true
+}
+func (c *ChainConfig) IsMuirGlacier(num *big.Int) bool {
+	return true
 }
 
 // IsGFork returns whether num represents a block number after the G fork
@@ -550,6 +599,7 @@ type Rules struct {
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158               bool
 	IsByzantium, IsConstantinople, IsPetersburg, IsIstanbul bool
 	IsChurrito, IsDonut, IsEspresso, IsGFork                bool
+	IsBerlin, IsLondon                                      bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -571,6 +621,8 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsChurrito:       c.IsChurrito(num),
 		IsDonut:          c.IsDonut(num),
 		IsEspresso:       c.IsEspresso(num),
+		IsBerlin:         c.IsBerlin(num),
+		IsLondon:         c.IsLondon(num),
 		IsGFork:          c.IsGFork(num),
 	}
 }
