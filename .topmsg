@@ -1,0 +1,4 @@
+From: Valentin Rodygin <valentin@clabs.co>
+Subject: [PATCH] t/min-client-version-check
+
+[feature] minimum client version check
