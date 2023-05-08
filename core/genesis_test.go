@@ -21,53 +21,40 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/celo-org/celo-blockchain/consensus/ethash"
 	"github.com/celo-org/celo-blockchain/core/rawdb"
 	"github.com/celo-org/celo-blockchain/core/vm"
 	"github.com/celo-org/celo-blockchain/ethdb"
 	"github.com/celo-org/celo-blockchain/params"
+	"github.com/davecgh/go-spew/spew"
 )
 
-func TestDefaultGenesisBlock(t *testing.T) {
-	block := DefaultGenesisBlock().ToBlock(nil)
+func TestMainnetGenesisBlock(t *testing.T) {
+	block := MainnetGenesisBlock().ToBlock(nil)
 	if block.Hash() != params.MainnetGenesisHash {
 		t.Errorf("wrong mainnet genesis hash, got %v, want %v", block.Hash(), params.MainnetGenesisHash)
 	}
-	block = DefaultRopstenGenesisBlock().ToBlock(nil)
-	if block.Hash() != params.RopstenGenesisHash {
-		t.Errorf("wrong ropsten genesis hash, got %v, want %v", block.Hash(), params.RopstenGenesisHash)
+	block = DefaultBaklavaGenesisBlock().ToBlock(nil)
+	if block.Hash() != params.BaklavaGenesisHash {
+		t.Errorf("wrong baklava testnet genesis hash, got %v, want %v", block.Hash().Hex(), params.BaklavaGenesisHash.Hex())
 	}
-	block = DefaultRinkebyGenesisBlock().ToBlock(nil)
-	if block.Hash() != params.RinkebyGenesisHash {
-		t.Errorf("wrong rinkeby genesis hash, got %v, want %v", block.Hash(), params.RinkebyGenesisHash)
-	}
-	block = DefaultGoerliGenesisBlock().ToBlock(nil)
-	if block.Hash() != params.GoerliGenesisHash {
-		t.Errorf("wrong goerli genesis hash, got %v, want %v", block.Hash(), params.GoerliGenesisHash)
-	}
-}
-
-func TestInvalidCliqueConfig(t *testing.T) {
-	block := DefaultGoerliGenesisBlock()
-	block.ExtraData = []byte{}
-	if _, err := block.Commit(nil); err == nil {
-		t.Fatal("Expected error on invalid clique config")
+	block = DefaultAlfajoresGenesisBlock().ToBlock(nil)
+	if block.Hash() != params.AlfajoresGenesisHash {
+		t.Errorf("wrong alfajores testnet genesis hash, got %v, want %v", block.Hash().Hex(), params.AlfajoresGenesisHash.Hex())
 	}
 }
 
 func TestSetupGenesis(t *testing.T) {
-	var (
-		customghash = common.HexToHash("0x89c99d90b79719238d2645c7642f2c9295246e80775b38cfd162b696817fbd50")
-		customg     = Genesis{
-			Config: &params.ChainConfig{HomesteadBlock: big.NewInt(3)},
-			Alloc: GenesisAlloc{
-				{1}: {Balance: big.NewInt(1), Storage: map[common.Hash]common.Hash{{1}: {1}}},
-			},
-		}
-		oldcustomg = customg
-	)
+	customghash := common.HexToHash("0xade49833713207ecf7d4807ca34b1246b014ef3992ec231deb1e0ee56289c1c8")
+	alloc := &GenesisAlloc{}
+	alloc.UnmarshalJSON([]byte(devAllocJSON))
+	customg := Genesis{
+		Config: &params.ChainConfig{HomesteadBlock: big.NewInt(3), Istanbul: &params.IstanbulConfig{}},
+		Alloc:  *alloc,
+	}
+	oldcustomg := customg
+
 	oldcustomg.Config = &params.ChainConfig{HomesteadBlock: big.NewInt(2)}
 	tests := []struct {
 		name       string
@@ -82,7 +69,7 @@ func TestSetupGenesis(t *testing.T) {
 				return SetupGenesisBlock(db, new(Genesis))
 			},
 			wantErr:    errGenesisNoConfig,
-			wantConfig: params.AllEthashProtocolChanges,
+			wantConfig: params.MainnetChainConfig,
 		},
 		{
 			name: "no block in DB, genesis == nil",
@@ -95,7 +82,7 @@ func TestSetupGenesis(t *testing.T) {
 		{
 			name: "mainnet block in DB, genesis == nil",
 			fn: func(db ethdb.Database) (*params.ChainConfig, common.Hash, error) {
-				DefaultGenesisBlock().MustCommit(db)
+				MainnetGenesisBlock().MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetGenesisHash,
@@ -111,14 +98,24 @@ func TestSetupGenesis(t *testing.T) {
 			wantConfig: customg.Config,
 		},
 		{
-			name: "custom block in DB, genesis == ropsten",
+			name: "custom block in DB, genesis == baklava",
 			fn: func(db ethdb.Database) (*params.ChainConfig, common.Hash, error) {
 				customg.MustCommit(db)
-				return SetupGenesisBlock(db, DefaultRopstenGenesisBlock())
+				return SetupGenesisBlock(db, DefaultBaklavaGenesisBlock())
 			},
-			wantErr:    &GenesisMismatchError{Stored: customghash, New: params.RopstenGenesisHash},
-			wantHash:   params.RopstenGenesisHash,
-			wantConfig: params.RopstenChainConfig,
+			wantErr:    &GenesisMismatchError{Stored: customghash, New: params.BaklavaGenesisHash},
+			wantHash:   params.BaklavaGenesisHash,
+			wantConfig: params.BaklavaChainConfig,
+		},
+		{
+			name: "custom block in DB, genesis == alfajores",
+			fn: func(db ethdb.Database) (*params.ChainConfig, common.Hash, error) {
+				customg.MustCommit(db)
+				return SetupGenesisBlock(db, DefaultAlfajoresGenesisBlock())
+			},
+			wantErr:    &GenesisMismatchError{Stored: customghash, New: params.AlfajoresGenesisHash},
+			wantHash:   params.AlfajoresGenesisHash,
+			wantConfig: params.AlfajoresChainConfig,
 		},
 		{
 			name: "compatible config in DB",
@@ -186,20 +183,16 @@ func TestGenesisHashes(t *testing.T) {
 		hash    common.Hash
 	}{
 		{
-			genesis: DefaultGenesisBlock(),
+			genesis: DefaultAlfajoresGenesisBlock(),
+			hash:    params.AlfajoresGenesisHash,
+		},
+		{
+			genesis: DefaultBaklavaGenesisBlock(),
+			hash:    params.BaklavaGenesisHash,
+		},
+		{
+			genesis: MainnetGenesisBlock(),
 			hash:    params.MainnetGenesisHash,
-		},
-		{
-			genesis: DefaultGoerliGenesisBlock(),
-			hash:    params.GoerliGenesisHash,
-		},
-		{
-			genesis: DefaultRopstenGenesisBlock(),
-			hash:    params.RopstenGenesisHash,
-		},
-		{
-			genesis: DefaultRinkebyGenesisBlock(),
-			hash:    params.RinkebyGenesisHash,
 		},
 	}
 	for i, c := range cases {

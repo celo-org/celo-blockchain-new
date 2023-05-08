@@ -130,19 +130,22 @@ var (
 	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Ethash consensus.
 	AllEthashProtocolChanges = &ChainConfig{
-		ChainID:                       big.NewInt(1337),
-		HomesteadBlock:                big.NewInt(0),
-		DAOForkBlock:                  nil,
-		DAOForkSupport:                false,
-		EIP150Block:                   big.NewInt(0),
-		EIP155Block:                   big.NewInt(0),
-		EIP158Block:                   big.NewInt(0),
-		ByzantiumBlock:                big.NewInt(0),
-		ConstantinopleBlock:           big.NewInt(0),
-		PetersburgBlock:               big.NewInt(0),
-		IstanbulBlock:                 big.NewInt(0),
-		Ethash:                        new(EthashConfig),
-		Clique:                        nil,
+		ChainID:             big.NewInt(1337),
+		HomesteadBlock:      big.NewInt(0),
+		DAOForkBlock:        nil,
+		DAOForkSupport:      false,
+		EIP150Block:         big.NewInt(0),
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: big.NewInt(0),
+		PetersburgBlock:     big.NewInt(0),
+		IstanbulBlock:       big.NewInt(0),
+		ChurritoBlock:       big.NewInt(0),
+		DonutBlock:          big.NewInt(0),
+		EspressoBlock:       big.NewInt(0),
+		Ethash:              new(EthashConfig),
+		Clique:              nil,
 	}
 
 	DeveloperChainConfig = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), big.NewInt(0), nil, nil, &IstanbulConfig{
@@ -278,6 +281,7 @@ type IstanbulConfig struct {
 	// number.
 	RequestTimeout uint64 `json:"requesttimeout,omitempty"`
 }
+
 // String implements the stringer interface, returning the consensus engine details.
 func (c *IstanbulConfig) String() string {
 	return "istanbul"
@@ -285,6 +289,7 @@ func (c *IstanbulConfig) String() string {
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
 type EthashConfig struct{}
+
 func (c *EthashConfig) String() string {
 	return "ethash"
 }
@@ -294,6 +299,7 @@ type CliqueConfig struct {
 	Period uint64 `json:"period"` // Number of seconds between blocks to enforce
 	Epoch  uint64 `json:"epoch"`  // Epoch length to reset votes and checkpoint
 }
+
 func (c *CliqueConfig) String() string {
 	return "clique"
 }
@@ -396,6 +402,7 @@ func (c *ChainConfig) IsDonut(num *big.Int) bool {
 func (c *ChainConfig) IsEspresso(num *big.Int) bool {
 	return isForked(c.EspressoBlock, num)
 }
+
 // The features from Berlin and London are included in the Espresso fork
 func (c *ChainConfig) IsBerlin(num *big.Int) bool {
 	return isForked(c.EspressoBlock, num)
