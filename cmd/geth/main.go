@@ -18,6 +18,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sort"
@@ -30,6 +31,8 @@ import (
 	"github.com/celo-org/celo-blockchain/cmd/utils"
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/celo-org/celo-blockchain/console/prompt"
+	"github.com/celo-org/celo-blockchain/contracts/blockchain_parameters"
+	"github.com/celo-org/celo-blockchain/core/vm"
 	"github.com/celo-org/celo-blockchain/eth"
 	"github.com/celo-org/celo-blockchain/eth/downloader"
 	"github.com/celo-org/celo-blockchain/ethclient"
@@ -39,6 +42,7 @@ import (
 	"github.com/celo-org/celo-blockchain/log"
 	"github.com/celo-org/celo-blockchain/metrics"
 	"github.com/celo-org/celo-blockchain/node"
+	"github.com/celo-org/celo-blockchain/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -150,6 +154,7 @@ var (
 		utils.MinerNotifyFullFlag,
 		configFileFlag,
 		utils.CatalystFlag,
+		utils.VersionCheckFlag,
 	}
 
 	rpcFlags = []cli.Flag{
@@ -414,6 +419,18 @@ func startNode(ctx *cli.Context, stack *node.Node, backend ethapi.Backend) {
 		if err := ethBackend.StartMining(threads); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}
+	}
+	if !ctx.GlobalBool(utils.VersionCheckFlag.Name) {
+		runnerFactory := func() (vm.EVMRunner, error) {
+			header := backend.CurrentHeader()
+			stateDB, _, err := backend.StateAndHeaderByNumberOrHash(context.Background(), rpc.BlockNumberOrHashWithHash(header.Hash(), true))
+			if err != nil {
+				return nil, err
+			}
+			return backend.NewEVMRunner(header, stateDB), nil
+		}
+
+		blockchain_parameters.SpawnCheck(runnerFactory)
 	}
 }
 

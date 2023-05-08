@@ -23,3 +23,27 @@ const RegistryStr = `[
 	}
 ]`
 
+const BlockchainParametersStr = `[
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getMinimumClientVersion",
+		"outputs": [
+			{
+			"name": "major",
+			"type": "uint256"
+			},
+			{
+			"name": "minor",
+			"type": "uint256"
+			},
+			{
+			"name": "patch",
+			"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
+]`

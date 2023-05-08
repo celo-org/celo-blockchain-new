@@ -656,6 +656,11 @@ var (
 		Name:  "netrestrict",
 		Usage: "Restricts network communication to the given IP networks (CIDR masks)",
 	}
+	
+	VersionCheckFlag = cli.BoolFlag{
+		Name:  "disable-version-check",
+		Usage: "Disable version check. Use if the parameter is set erroneously",
+	}
 	DNSDiscoveryFlag = cli.StringFlag{
 		Name:  "discovery.dns",
 		Usage: "Sets DNS discovery entry points (use \"\" to disable DNS)",
