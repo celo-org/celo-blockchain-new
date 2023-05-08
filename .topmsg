@@ -1,0 +1,4 @@
+From: Karl Bartel <karl.bartel@clabs.co>
+Subject: [PATCH] t/geth-celo-rename
+
+Rename go-ethereum to celo-blockchain in imports
