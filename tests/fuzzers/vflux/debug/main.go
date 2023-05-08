@@ -21,8 +21,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/tests/fuzzers/vflux"
+	"github.com/celo-org/celo-blockchain/log"
+	"github.com/celo-org/celo-blockchain/tests/fuzzers/vflux"
 )
 
 func main() {

@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/celo-org/celo-blockchain/log"
 )
 
 var (

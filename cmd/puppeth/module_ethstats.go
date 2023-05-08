@@ -25,7 +25,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/celo-org/celo-blockchain/log"
 )
 
 // ethstatsDockerfile is the Dockerfile required to build an ethstats backend

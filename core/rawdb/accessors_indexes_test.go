@@ -22,11 +22,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/celo-org/celo-blockchain/ethdb"
+	"github.com/celo-org/celo-blockchain/params"
+	"github.com/celo-org/celo-blockchain/rlp"
 	"golang.org/x/crypto/sha3"
 )
 

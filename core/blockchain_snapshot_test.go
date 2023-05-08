@@ -29,13 +29,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/celo-org/celo-blockchain/consensus"
+	"github.com/celo-org/celo-blockchain/consensus/ethash"
+	"github.com/celo-org/celo-blockchain/core/rawdb"
+	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/celo-org/celo-blockchain/core/vm"
+	"github.com/celo-org/celo-blockchain/ethdb"
+	"github.com/celo-org/celo-blockchain/params"
 )
 
 // snapshotTestBasic wraps the common testing fields in the snapshot tests.

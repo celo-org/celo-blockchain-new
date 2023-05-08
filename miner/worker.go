@@ -25,16 +25,16 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/consensus/misc"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/consensus"
+	"github.com/celo-org/celo-blockchain/consensus/misc"
+	"github.com/celo-org/celo-blockchain/core"
+	"github.com/celo-org/celo-blockchain/core/state"
+	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/celo-org/celo-blockchain/event"
+	"github.com/celo-org/celo-blockchain/log"
+	"github.com/celo-org/celo-blockchain/params"
+	"github.com/celo-org/celo-blockchain/trie"
 )
 
 const (

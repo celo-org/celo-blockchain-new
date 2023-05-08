@@ -17,10 +17,10 @@
 package eth
 
 import (
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/forkid"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/celo-org/celo-blockchain/core"
+	"github.com/celo-org/celo-blockchain/core/forkid"
+	"github.com/celo-org/celo-blockchain/p2p/enode"
+	"github.com/celo-org/celo-blockchain/rlp"
 )
 
 // enrEntry is the ENR entry which advertises `eth` protocol on the discovery.

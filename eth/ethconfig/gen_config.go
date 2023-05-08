@@ -6,13 +6,13 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/eth/gasprice"
-	"github.com/ethereum/go-ethereum/miner"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/consensus/ethash"
+	"github.com/celo-org/celo-blockchain/core"
+	"github.com/celo-org/celo-blockchain/eth/downloader"
+	"github.com/celo-org/celo-blockchain/eth/gasprice"
+	"github.com/celo-org/celo-blockchain/miner"
+	"github.com/celo-org/celo-blockchain/params"
 )
 
 // MarshalTOML marshals as TOML.

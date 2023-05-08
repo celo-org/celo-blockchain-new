@@ -16,7 +16,7 @@
 
 package state
 
-import "github.com/ethereum/go-ethereum/metrics"
+import "github.com/celo-org/celo-blockchain/metrics"
 
 var (
 	accountUpdatedMeter   = metrics.NewRegisteredMeter("state/update/account", nil)

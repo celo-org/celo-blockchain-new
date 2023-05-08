@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/celo-org/celo-blockchain/log"
+	"github.com/celo-org/celo-blockchain/metrics"
 )
 
 const (

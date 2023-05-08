@@ -21,7 +21,7 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/celo-org/celo-blockchain/params"
 )
 
 // Forks table defines supported forks and their chain config.

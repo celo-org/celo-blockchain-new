@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/celo-org/celo-blockchain/log"
 )
 
 // deployEthstats queries the user for various input on deploying an ethstats

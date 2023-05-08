@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/les/utils"
-	"github.com/ethereum/go-ethereum/les/vflux"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/celo-org/celo-blockchain/les/utils"
+	"github.com/celo-org/celo-blockchain/les/vflux"
+	"github.com/celo-org/celo-blockchain/log"
+	"github.com/celo-org/celo-blockchain/p2p/enode"
+	"github.com/celo-org/celo-blockchain/rlp"
 )
 
 type (

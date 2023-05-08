@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/common/hexutil"
+	"github.com/celo-org/celo-blockchain/common/math"
+	"github.com/celo-org/celo-blockchain/signer/core/apitypes"
 )
 
 // GnosisSafeTx is a type to parse the safe-tx returned by the relayer,

@@ -59,9 +59,9 @@ import (
 	"time"
 
 	"github.com/cespare/cp"
-	"github.com/ethereum/go-ethereum/crypto/signify"
-	"github.com/ethereum/go-ethereum/internal/build"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/celo-org/celo-blockchain/crypto/signify"
+	"github.com/celo-org/celo-blockchain/internal/build"
+	"github.com/celo-org/celo-blockchain/params"
 )
 
 var (
@@ -994,7 +994,7 @@ func doAndroidArchive(cmdline []string) {
 	build.MustRun(tc.Go("mod", "download"))
 
 	// Build the Android archive and Maven resources
-	build.MustRun(gomobileTool("bind", "-ldflags", "-s -w", "--target", "android", "--javapkg", "org.ethereum", "-v", "github.com/ethereum/go-ethereum/mobile"))
+	build.MustRun(gomobileTool("bind", "-ldflags", "-s -w", "--target", "android", "--javapkg", "org.ethereum", "-v", "github.com/celo-org/celo-blockchain/mobile"))
 
 	if *local {
 		// If we're building locally, copy bundle to build dir and skip Maven
@@ -1123,7 +1123,7 @@ func doXCodeFramework(cmdline []string) {
 	build.MustRun(tc.Go("mod", "download"))
 
 	// Build the iOS XCode framework
-	bind := gomobileTool("bind", "-ldflags", "-s -w", "--target", "ios", "-v", "github.com/ethereum/go-ethereum/mobile")
+	bind := gomobileTool("bind", "-ldflags", "-s -w", "--target", "ios", "-v", "github.com/celo-org/celo-blockchain/mobile")
 
 	if *local {
 		// If we're building locally, use the build folder and stop afterwards

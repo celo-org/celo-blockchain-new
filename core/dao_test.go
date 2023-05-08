@@ -20,10 +20,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/celo-org/celo-blockchain/consensus/ethash"
+	"github.com/celo-org/celo-blockchain/core/rawdb"
+	"github.com/celo-org/celo-blockchain/core/vm"
+	"github.com/celo-org/celo-blockchain/params"
 )
 
 // Tests that DAO-fork enabled clients can properly filter out fork-commencing

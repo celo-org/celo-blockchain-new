@@ -21,9 +21,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/core/rawdb"
+	"github.com/celo-org/celo-blockchain/log"
 	bloomfilter "github.com/holiman/bloomfilter/v2"
 )
 

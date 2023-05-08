@@ -17,7 +17,7 @@
 package state
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/celo-org/celo-blockchain/common"
 )
 
 type accessList struct {

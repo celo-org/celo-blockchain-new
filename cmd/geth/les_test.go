@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/celo-org/celo-blockchain/p2p"
+	"github.com/celo-org/celo-blockchain/rpc"
 )
 
 type gethrpc struct {

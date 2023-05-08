@@ -21,11 +21,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/eth/ethconfig"
-	"github.com/ethereum/go-ethereum/internal/utesting"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
+	"github.com/celo-org/celo-blockchain/eth"
+	"github.com/celo-org/celo-blockchain/eth/ethconfig"
+	"github.com/celo-org/celo-blockchain/internal/utesting"
+	"github.com/celo-org/celo-blockchain/node"
+	"github.com/celo-org/celo-blockchain/p2p"
 )
 
 var (

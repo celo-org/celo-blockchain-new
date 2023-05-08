@@ -24,17 +24,17 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/eth/ethconfig"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/ethstats"
-	"github.com/ethereum/go-ethereum/internal/debug"
-	"github.com/ethereum/go-ethereum/les"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/nat"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/celo-org/celo-blockchain/core"
+	"github.com/celo-org/celo-blockchain/eth/downloader"
+	"github.com/celo-org/celo-blockchain/eth/ethconfig"
+	"github.com/celo-org/celo-blockchain/ethclient"
+	"github.com/celo-org/celo-blockchain/ethstats"
+	"github.com/celo-org/celo-blockchain/internal/debug"
+	"github.com/celo-org/celo-blockchain/les"
+	"github.com/celo-org/celo-blockchain/node"
+	"github.com/celo-org/celo-blockchain/p2p"
+	"github.com/celo-org/celo-blockchain/p2p/nat"
+	"github.com/celo-org/celo-blockchain/params"
 )
 
 // NodeConfig represents the collection of configuration values to fine tune the Geth

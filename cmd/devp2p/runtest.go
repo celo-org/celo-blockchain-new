@@ -19,9 +19,9 @@ package main
 import (
 	"os"
 
-	"github.com/ethereum/go-ethereum/cmd/devp2p/internal/v4test"
-	"github.com/ethereum/go-ethereum/internal/utesting"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/celo-org/celo-blockchain/cmd/devp2p/internal/v4test"
+	"github.com/celo-org/celo-blockchain/internal/utesting"
+	"github.com/celo-org/celo-blockchain/log"
 	"gopkg.in/urfave/cli.v1"
 )
 

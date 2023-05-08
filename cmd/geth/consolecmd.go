@@ -22,10 +22,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/console"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/celo-org/celo-blockchain/cmd/utils"
+	"github.com/celo-org/celo-blockchain/console"
+	"github.com/celo-org/celo-blockchain/node"
+	"github.com/celo-org/celo-blockchain/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 

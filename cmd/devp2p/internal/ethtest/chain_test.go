@@ -21,8 +21,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/eth/protocols/eth"
-	"github.com/ethereum/go-ethereum/p2p"
+	"github.com/celo-org/celo-blockchain/eth/protocols/eth"
+	"github.com/celo-org/celo-blockchain/p2p"
 	"github.com/stretchr/testify/assert"
 )
 

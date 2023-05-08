@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/celo-org/celo-blockchain/params"
 	"github.com/holiman/uint256"
 )
 

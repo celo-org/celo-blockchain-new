@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/celo-org/celo-blockchain/log"
 )
 
 // deployExplorer creates a new block explorer based on some user input.

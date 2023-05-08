@@ -23,12 +23,12 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	vfc "github.com/ethereum/go-ethereum/les/vflux/client"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/celo-org/celo-blockchain/crypto"
+	vfc "github.com/celo-org/celo-blockchain/les/vflux/client"
+	"github.com/celo-org/celo-blockchain/p2p/enode"
+	"github.com/celo-org/celo-blockchain/rlp"
 )
 
 // Constants to match up protocol versions and messages

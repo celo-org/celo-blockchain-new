@@ -24,15 +24,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/les/utils"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/enr"
-	"github.com/ethereum/go-ethereum/p2p/nodestate"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/celo-org/celo-blockchain/common/mclock"
+	"github.com/celo-org/celo-blockchain/ethdb"
+	"github.com/celo-org/celo-blockchain/les/utils"
+	"github.com/celo-org/celo-blockchain/log"
+	"github.com/celo-org/celo-blockchain/metrics"
+	"github.com/celo-org/celo-blockchain/p2p/enode"
+	"github.com/celo-org/celo-blockchain/p2p/enr"
+	"github.com/celo-org/celo-blockchain/p2p/nodestate"
+	"github.com/celo-org/celo-blockchain/rlp"
 )
 
 const (

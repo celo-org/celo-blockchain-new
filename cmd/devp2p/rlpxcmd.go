@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/ethereum/go-ethereum/cmd/devp2p/internal/ethtest"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/internal/utesting"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/rlpx"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/celo-org/celo-blockchain/cmd/devp2p/internal/ethtest"
+	"github.com/celo-org/celo-blockchain/crypto"
+	"github.com/celo-org/celo-blockchain/internal/utesting"
+	"github.com/celo-org/celo-blockchain/p2p"
+	"github.com/celo-org/celo-blockchain/p2p/rlpx"
+	"github.com/celo-org/celo-blockchain/rlp"
 	"gopkg.in/urfave/cli.v1"
 )
 

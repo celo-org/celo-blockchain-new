@@ -25,11 +25,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/bitutil"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/p2p/rlpx"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/common/bitutil"
+	"github.com/celo-org/celo-blockchain/metrics"
+	"github.com/celo-org/celo-blockchain/p2p/rlpx"
+	"github.com/celo-org/celo-blockchain/rlp"
 )
 
 const (

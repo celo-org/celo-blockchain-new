@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ethereum/go-ethereum/internal/ethapi"
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/celo-org/celo-blockchain/internal/ethapi"
+	"github.com/celo-org/celo-blockchain/node"
 	"github.com/graph-gophers/graphql-go"
 )
 
