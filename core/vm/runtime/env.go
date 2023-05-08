@@ -17,8 +17,8 @@
 package runtime
 
 import (
-	"github.com/celo-org/celo-blockchain/core"
 	"github.com/celo-org/celo-blockchain/core/vm"
+	"github.com/celo-org/celo-blockchain/core/vm/vmcontext"
 )
 
 func NewEnv(cfg *Config) *vm.EVM {
@@ -27,8 +27,8 @@ func NewEnv(cfg *Config) *vm.EVM {
 		GasPrice: cfg.GasPrice,
 	}
 	blockContext := vm.BlockContext{
-		CanTransfer: core.CanTransfer,
-		Transfer:    core.Transfer,
+		CanTransfer: vmcontext.CanTransfer,
+		Transfer:    vmcontext.Transfer,
 		GetHash:     cfg.GetHashFn,
 		Coinbase:    cfg.Coinbase,
 		BlockNumber: cfg.BlockNumber,
