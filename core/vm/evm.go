@@ -120,18 +120,21 @@ type EVM struct {
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
 	// applied in opCall*.
 	callGasTemp uint64
+
+	dontMeterGas bool
 }
 
 // NewEVM returns a new EVM. The returned EVM is not thread safe and should
 // only ever be used *once*.
 func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb StateDB, chainConfig *params.ChainConfig, config Config) *EVM {
 	evm := &EVM{
-		Context:     blockCtx,
-		TxContext:   txCtx,
-		StateDB:     statedb,
-		Config:      config,
-		chainConfig: chainConfig,
-		chainRules:  chainConfig.Rules(blockCtx.BlockNumber),
+		Context:      blockCtx,
+		TxContext:    txCtx,
+		StateDB:      statedb,
+		Config:       config,
+		chainConfig:  chainConfig,
+		chainRules:   chainConfig.Rules(blockCtx.BlockNumber),
+		dontMeterGas: false,
 	}
 	evm.interpreter = NewEVMInterpreter(evm, config)
 	return evm
@@ -158,6 +161,17 @@ func (evm *EVM) Cancelled() bool {
 // Interpreter returns the current interpreter
 func (evm *EVM) Interpreter() *EVMInterpreter {
 	return evm.interpreter
+}
+
+func (evm *EVM) GetDebug() bool {
+	return evm.Config.Debug
+}
+
+func (evm *EVM) SetDebug(value bool) {
+	// Set both of these in sync since they refer to the same config data
+	// and are interchangeably used in the interpreter & evm.
+	evm.Config.Debug = value
+	evm.interpreter.cfg.Debug = value
 }
 
 // Call executes the contract associated with the addr with the given input as
@@ -520,3 +534,11 @@ func (evm *EVM) Create2(caller ContractRef, code []byte, gas uint64, endowment *
 
 // ChainConfig returns the environment's chain configuration
 func (evm *EVM) ChainConfig() *params.ChainConfig { return evm.chainConfig }
+
+func (evm *EVM) StopGasMetering() {
+	evm.dontMeterGas = true
+}
+
+func (evm *EVM) StartGasMetering() {
+	evm.dontMeterGas = false
+}
