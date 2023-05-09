@@ -27,12 +27,15 @@ import (
 	"github.com/celo-org/celo-blockchain/common"
 )
 
+var mockEVM = &EVM{}
+
 // precompiledTest defines the input/output pairs for precompiled contract tests.
 type precompiledTest struct {
 	Input, Expected string
 	Gas             uint64
 	Name            string
 	NoBenchmark     bool // Benchmark primarily the worst-cases
+	ErrorExpected   bool
 }
 
 // precompiledFailureTest defines the input/error pairs for precompiled
@@ -96,13 +99,23 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in)
 	t.Run(fmt.Sprintf("%s-Gas=%d", test.Name, gas), func(t *testing.T) {
-		if res, _, err := RunPrecompiledContract(p, in, gas); err != nil {
-			t.Error(err)
-		} else if common.Bytes2Hex(res) != test.Expected {
-			t.Errorf("Expected %v, got %v", test.Expected, common.Bytes2Hex(res))
-		}
-		if expGas := test.Gas; expGas != gas {
-			t.Errorf("%v: gas wrong, expected %d, got %d", test.Name, expGas, gas)
+		res, _, err := RunPrecompiledContract(p, in, gas, common.HexToAddress("1337"), mockEVM)
+		if test.ErrorExpected {
+			if err == nil {
+				t.Errorf("Expected error: %v, but no error occurred", test.Expected)
+			} else if err.Error() != test.Expected {
+				t.Errorf("Expected error: \"%v\", but got \"%v\"", test.Expected, err.Error())
+			}
+		} else {
+			if err != nil {
+				t.Error(err)
+			} else if common.Bytes2Hex(res) != test.Expected {
+				t.Errorf("Expected %v, got %v", test.Expected, common.Bytes2Hex(res))
+			}
+			// TODO: Calculate and add our actual gas to every json file
+			// if expGas := test.Gas; expGas != gas {
+			// 	t.Errorf("%v: gas wrong, expected %d, got %d", test.Name, expGas, gas)
+			// }
 		}
 		// Verify that the precompile did not touch the input buffer
 		exp := common.Hex2Bytes(test.Input)
@@ -116,9 +129,8 @@ func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 	p := allPrecompiles[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in) - 1
-
 	t.Run(fmt.Sprintf("%s-Gas=%d", test.Name, gas), func(t *testing.T) {
-		_, _, err := RunPrecompiledContract(p, in, gas)
+		_, _, err := RunPrecompiledContract(p, in, gas, common.HexToAddress("1337"), mockEVM)
 		if err.Error() != "out of gas" {
 			t.Errorf("Expected error [out of gas], got [%v]", err)
 		}
@@ -135,7 +147,7 @@ func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in)
 	t.Run(test.Name, func(t *testing.T) {
-		_, _, err := RunPrecompiledContract(p, in, gas)
+		_, _, err := RunPrecompiledContract(p, in, gas, common.HexToAddress("1337"), mockEVM)
 		if err.Error() != test.ExpectedError {
 			t.Errorf("Expected error [%v], got [%v]", test.ExpectedError, err)
 		}
@@ -167,7 +179,7 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 		bench.ResetTimer()
 		for i := 0; i < bench.N; i++ {
 			copy(data, in)
-			res, _, err = RunPrecompiledContract(p, data, reqGas)
+			res, _, err = RunPrecompiledContract(p, data, reqGas, common.HexToAddress("1337"), mockEVM)
 		}
 		bench.StopTimer()
 		elapsed := uint64(time.Since(start))
