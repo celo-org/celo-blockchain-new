@@ -177,6 +177,7 @@ var (
 
 	// Celo registered contract IDs.
 	// The names are taken from celo-monorepo/packages/protocol/lib/registry-utils.ts
+	BlockchainParametersRegistryId = makeRegistryId("BlockchainParameters")
 )
 
 func makeRegistryId(contractName string) [32]byte {
@@ -193,4 +194,5 @@ const (
 
 	// Contract communication gas limits
 	MaxGasForGetAddressFor                         uint64 = 100 * thousand
+	MaxGasForReadBlockchainParameter               uint64 = 40 * thousand // ad-hoc measurement is ~26k
 )
