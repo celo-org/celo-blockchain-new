@@ -1,0 +1,4 @@
+From: Paul Lange <palango@gmx.de>
+Subject: [PATCH] t/ed25519-precompile
+
+Add `ed25519Verify` precompile
