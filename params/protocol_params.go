@@ -18,7 +18,9 @@ package params
 
 import (
 	"math/big"
+
 	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/common/hexutil"
 	"github.com/celo-org/celo-blockchain/crypto"
 )
 
@@ -179,6 +181,14 @@ var (
 	// The names are taken from celo-monorepo/packages/protocol/lib/registry-utils.ts
 
 	GoldTokenRegistryId = makeRegistryId("GoldToken")
+	ReserveRegistryId   = makeRegistryId("Reserve")
+
+	// Function is "getOrComputeTobinTax()"
+	// selector is first 4 bytes of keccak256 of "getOrComputeTobinTax()"
+	// Source:
+	// pip3 install pyethereum
+	// python3 -c 'from ethereum.utils import sha3; print(sha3("getOrComputeTobinTax()")[0:4].hex())'
+	TobinTaxFunctionSelector = hexutil.MustDecode("0x17f9a6f7")
 )
 
 func makeRegistryId(contractName string) [32]byte {
@@ -195,4 +205,5 @@ const (
 
 	// Contract communication gas limits
 	MaxGasForGetAddressFor                         uint64 = 100 * thousand
+	MaxGasForGetOrComputeTobinTax                  uint64 = 1 * million
 )

@@ -149,13 +149,14 @@ func TestPrestateTracerCreate2(t *testing.T) {
 		GasPrice: big.NewInt(1),
 	}
 	context := vm.BlockContext{
-		CanTransfer: vmcontext.CanTransfer,
-		Transfer:    vmcontext.Transfer,
-		Coinbase:    common.Address{},
-		BlockNumber: new(big.Int).SetUint64(8000000),
-		Time:        new(big.Int).SetUint64(5),
-		Difficulty:  big.NewInt(0x30000),
-		GasLimit:    uint64(6000000),
+		CanTransfer:          vmcontext.CanTransfer,
+		Transfer:             vmcontext.TobinTransfer,
+		Coinbase:             common.Address{},
+		BlockNumber:          new(big.Int).SetUint64(8000000),
+		Time:                 new(big.Int).SetUint64(5),
+		Difficulty:           big.NewInt(0x30000),
+		GasLimit:             uint64(6000000),
+		GetRegisteredAddress: vmcontext.GetRegisteredAddress,
 	}
 	alloc := core.GenesisAlloc{}
 
@@ -243,7 +244,7 @@ func testCallTracer(tracer string, dirPath string, t *testing.T) {
 			}
 			context := vm.BlockContext{
 				CanTransfer: vmcontext.CanTransfer,
-				Transfer:    vmcontext.Transfer,
+				Transfer:    vmcontext.TobinTransfer,
 				Coinbase:    test.Context.Miner,
 				BlockNumber: new(big.Int).SetUint64(uint64(test.Context.Number)),
 				Time:        new(big.Int).SetUint64(uint64(test.Context.Time)),
@@ -332,7 +333,7 @@ func BenchmarkTransactionTrace(b *testing.B) {
 	}
 	context := vm.BlockContext{
 		CanTransfer: vmcontext.CanTransfer,
-		Transfer:    vmcontext.Transfer,
+		Transfer:    vmcontext.TobinTransfer,
 		Coinbase:    common.Address{},
 		BlockNumber: new(big.Int).SetUint64(uint64(5)),
 		Time:        new(big.Int).SetUint64(uint64(5)),
@@ -430,7 +431,7 @@ func benchTracer(tracerName string, test *callTracerTest, b *testing.B) {
 	}
 	context := vm.BlockContext{
 		CanTransfer: vmcontext.CanTransfer,
-		Transfer:    vmcontext.Transfer,
+		Transfer:    vmcontext.TobinTransfer,
 		Coinbase:    test.Context.Miner,
 		BlockNumber: new(big.Int).SetUint64(uint64(test.Context.Number)),
 		Time:        new(big.Int).SetUint64(uint64(test.Context.Time)),
