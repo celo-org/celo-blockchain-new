@@ -28,7 +28,12 @@ import (
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/celo-org/celo-blockchain/common/math"
 	"github.com/celo-org/celo-blockchain/crypto"
+	"github.com/celo-org/celo-blockchain/log"
 	"github.com/celo-org/celo-blockchain/rlp"
+)
+
+const (
+	ethCompatibleTxNumFields = 9
 )
 
 var (
@@ -38,6 +43,9 @@ var (
 	ErrTxTypeNotSupported   = errors.New("transaction type not supported")
 	ErrGasFeeCapTooLow      = errors.New("fee cap less than base fee")
 	errEmptyTypedTx         = errors.New("empty typed transaction bytes")
+	// ErrEthCompatibleTransactionIsntCompatible is returned if the transaction has EthCompatible: true
+	// but has non-nil-or-0 values for some of the Celo-only fields
+	ErrEthCompatibleTransactionIsntCompatible = errors.New("ethCompatible is true, but non-eth-compatible fields are present")
 )
 
 // Transaction types.
@@ -82,6 +90,13 @@ type TxData interface {
 	value() *big.Int
 	nonce() uint64
 	to() *common.Address
+
+	// Celo specific fields
+	feeCurrency() *common.Address
+	gatewayFeeRecipient() *common.Address
+	gatewayFee() *big.Int
+	// Whether this is an ethereum-compatible transaction (i.e. with FeeCurrency, GatewayFeeRecipient and GatewayFee omitted)
+	ethCompatible() bool
 
 	rawSignatureValues() (v, r, s *big.Int)
 	setSignatureValues(chainID, v, r, s *big.Int)
@@ -257,6 +272,36 @@ func (tx *Transaction) ChainId() *big.Int {
 	return tx.inner.chainID()
 }
 
+// FeeCurrency returns the fee currency of the transaction. Nil implies paying in CELO.
+func (tx *Transaction) FeeCurrency() *common.Address { return tx.inner.feeCurrency() }
+
+// GatewayFeeRecipient returns the address to the send the gateway fee to. Nil implies no recipient.
+func (tx *Transaction) GatewayFeeRecipient() *common.Address { return tx.inner.gatewayFeeRecipient() }
+
+// GatewayFee returns the fee that should be paid to the gateway fee recipient.
+// Will not return nil, but instead returns 0 if the underlying transction does not have a gatewayfee.
+func (tx *Transaction) GatewayFee() *big.Int {
+	if tx.inner.gatewayFee() != nil {
+		return new(big.Int).Set(tx.inner.gatewayFee())
+	} else {
+		return big.NewInt(0)
+	}
+}
+
+// EthCompatible returns true iff the RLP form of the LegacyTx does not have the celo specific fields.
+func (tx *Transaction) EthCompatible() bool { return tx.inner.ethCompatible() }
+
+// Fee calculates the fess paid by the transaction include the gateway fee.
+func (tx *Transaction) Fee() *big.Int {
+	return Fee(tx.inner.gasPrice(), tx.inner.gas(), tx.GatewayFee())
+}
+
+// Fee calculates the transaction fee (gasLimit * gasPrice + gatewayFee)
+func Fee(gasPrice *big.Int, gasLimit uint64, gatewayFee *big.Int) *big.Int {
+	gasFee := new(big.Int).Mul(gasPrice, big.NewInt(int64(gasLimit)))
+	return gasFee.Add(gasFee, gatewayFee)
+}
+
 // Data returns the input data of the transaction.
 func (tx *Transaction) Data() []byte { return tx.inner.data() }
 
@@ -293,10 +338,13 @@ func (tx *Transaction) To() *common.Address {
 	return &cpy
 }
 
-// Cost returns gas * gasPrice + value.
+// Cost returns value + gasprice * gaslimit + gatewayfee.
 func (tx *Transaction) Cost() *big.Int {
 	total := new(big.Int).Mul(tx.GasPrice(), new(big.Int).SetUint64(tx.Gas()))
 	total.Add(total, tx.Value())
+	if gatewayFee := tx.GatewayFee(); gatewayFee != nil {
+		total.Add(total, gatewayFee)
+	}
 	return total
 }
 
@@ -307,21 +355,35 @@ func (tx *Transaction) RawSignatureValues() (v, r, s *big.Int) {
 }
 
 // GasFeeCapCmp compares the fee cap of two transactions.
+// The two transactions must have the same fee currency for the result to be valid.
 func (tx *Transaction) GasFeeCapCmp(other *Transaction) int {
+	fca := tx.FeeCurrency()
+	fcb := other.FeeCurrency()
+	if (fca == nil && fcb != nil) || (fca != nil && fcb == nil) || (fca != nil && fcb != nil && *fca != *fcb) {
+		log.Error("Dev error: using GasFeeCapCmp with transactions that have differing fee currencies")
+	}
 	return tx.inner.gasFeeCap().Cmp(other.inner.gasFeeCap())
 }
 
 // GasFeeCapIntCmp compares the fee cap of the transaction against the given fee cap.
+// `other` must be in the same fee currency that the transaction is using.
 func (tx *Transaction) GasFeeCapIntCmp(other *big.Int) int {
 	return tx.inner.gasFeeCap().Cmp(other)
 }
 
 // GasTipCapCmp compares the gasTipCap of two transactions.
+// The two transactions must have the same fee currency for the result to be valid.
 func (tx *Transaction) GasTipCapCmp(other *Transaction) int {
+	fca := tx.FeeCurrency()
+	fcb := other.FeeCurrency()
+	if (fca == nil && fcb != nil) || (fca != nil && fcb == nil) || (fca != nil && fcb != nil && *fca != *fcb) {
+		log.Error("Dev error: using GasTipCapCmp with transactions that have differing fee currencies")
+	}
 	return tx.inner.gasTipCap().Cmp(other.inner.gasTipCap())
 }
 
 // GasTipCapIntCmp compares the gasTipCap of the transaction against the given gasTipCap.
+// `other` must be in the same fee currency that the transaction is using.
 func (tx *Transaction) GasTipCapIntCmp(other *big.Int) int {
 	return tx.inner.gasTipCap().Cmp(other)
 }
@@ -329,6 +391,8 @@ func (tx *Transaction) GasTipCapIntCmp(other *big.Int) int {
 // EffectiveGasTip returns the effective miner gasTipCap for the given base fee.
 // Note: if the effective gasTipCap is negative, this method returns both error
 // the actual negative value, _and_ ErrGasFeeCapTooLow
+// Note: `baseFee` must be in the same FeeCurrency as the transactions and
+// The returned value is in the FeeCurrency of the transaction
 func (tx *Transaction) EffectiveGasTip(baseFee *big.Int) (*big.Int, error) {
 	if baseFee == nil {
 		return tx.GasTipCap(), nil
@@ -343,13 +407,21 @@ func (tx *Transaction) EffectiveGasTip(baseFee *big.Int) (*big.Int, error) {
 
 // EffectiveGasTipValue is identical to EffectiveGasTip, but does not return an
 // error in case the effective gasTipCap is negative
+// Note: `baseFee` must be in the same FeeCurrency as the transactions and
+// the returned value is in the FeeCurrency of the transaction
 func (tx *Transaction) EffectiveGasTipValue(baseFee *big.Int) *big.Int {
 	effectiveTip, _ := tx.EffectiveGasTip(baseFee)
 	return effectiveTip
 }
 
 // EffectiveGasTipCmp compares the effective gasTipCap of two transactions assuming the given base fee.
+// `other` must has the same feecurrency as `tx` and `baseFee` must be in the same fee currency.
 func (tx *Transaction) EffectiveGasTipCmp(other *Transaction, baseFee *big.Int) int {
+	fca := tx.FeeCurrency()
+	fcb := other.FeeCurrency()
+	if (fca == nil && fcb != nil) || (fca != nil && fcb == nil) || (fca != nil && fcb != nil && *fca != *fcb) {
+		log.Error("Dev error: using EffectiveGasTipCmp with transactions that have differing fee currencies")
+	}
 	if baseFee == nil {
 		return tx.GasTipCapCmp(other)
 	}
@@ -357,6 +429,7 @@ func (tx *Transaction) EffectiveGasTipCmp(other *Transaction, baseFee *big.Int) 
 }
 
 // EffectiveGasTipIntCmp compares the effective gasTipCap of a transaction to the given gasTipCap.
+// `other` and `baseFee` must be in the same fee currency.
 func (tx *Transaction) EffectiveGasTipIntCmp(other *big.Int, baseFee *big.Int) int {
 	if baseFee == nil {
 		return tx.GasTipCapIntCmp(other)
@@ -390,6 +463,14 @@ func (tx *Transaction) Size() common.StorageSize {
 	rlp.Encode(&c, &tx.inner)
 	tx.size.Store(common.StorageSize(c))
 	return common.StorageSize(c)
+}
+
+// CheckEthCompatibility checks that the Celo-only fields are nil-or-0 if EthCompatible is true
+func (tx *Transaction) CheckEthCompatibility() error {
+	if tx.EthCompatible() && !(tx.FeeCurrency() == nil && tx.GatewayFeeRecipient() == nil && tx.GatewayFee().Sign() == 0) {
+		return ErrEthCompatibleTransactionIsntCompatible
+	}
+	return nil
 }
 
 // WithSignature returns a new transaction with the given signature.
@@ -569,66 +650,117 @@ func (t *TransactionsByPriceAndNonce) Pop() {
 //
 // NOTE: In a future PR this will be removed.
 type Message struct {
-	to         *common.Address
-	from       common.Address
-	nonce      uint64
-	amount     *big.Int
-	gasLimit   uint64
-	gasPrice   *big.Int
-	gasFeeCap  *big.Int
-	gasTipCap  *big.Int
-	data       []byte
-	accessList AccessList
-	isFake     bool
+	to                  *common.Address
+	from                common.Address
+	nonce               uint64
+	amount              *big.Int
+	gasLimit            uint64
+	gasPrice            *big.Int
+	gasFeeCap           *big.Int
+	gasTipCap           *big.Int
+	feeCurrency         *common.Address
+	gatewayFeeRecipient *common.Address
+	gatewayFee          *big.Int
+	data                []byte
+	accessList          AccessList
+	ethCompatible       bool
+	isFake              bool
 }
 
-func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice, gasFeeCap, gasTipCap *big.Int, data []byte, accessList AccessList, isFake bool) Message {
-	return Message{
-		from:       from,
-		to:         to,
-		nonce:      nonce,
-		amount:     amount,
-		gasLimit:   gasLimit,
-		gasPrice:   gasPrice,
-		gasFeeCap:  gasFeeCap,
-		gasTipCap:  gasTipCap,
-		data:       data,
-		accessList: accessList,
-		isFake:     isFake,
+func NewCeloMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int,
+	gasLimit uint64, gasPrice, gasFeeCap, gasTipCap *big.Int,
+	feeCurrency, gatewayFeeRecipient *common.Address, gatewayFee *big.Int,
+	data []byte, accessList AccessList, ethCompatible, isFake bool) Message {
+	m := Message{
+		from:                from,
+		to:                  to,
+		nonce:               nonce,
+		amount:              amount,
+		gasLimit:            gasLimit,
+		gasPrice:            gasPrice,
+		gasFeeCap:           gasFeeCap,
+		gasTipCap:           gasTipCap,
+		feeCurrency:         feeCurrency,
+		gatewayFeeRecipient: gatewayFeeRecipient,
+		gatewayFee:          gatewayFee,
+		data:                data,
+		accessList:          accessList,
+		ethCompatible:       ethCompatible,
+		isFake:              isFake,
 	}
+	if m.gatewayFee == nil {
+		m.gatewayFee = new(big.Int)
+	}
+	return m
+}
+
+func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int,
+	gasLimit uint64, gasPrice, gasFeeCap, gasTipCap *big.Int,
+	data []byte, accessList AccessList, isFake bool) Message {
+	m := Message{
+		from:                from,
+		to:                  to,
+		nonce:               nonce,
+		amount:              amount,
+		gasLimit:            gasLimit,
+		gasPrice:            gasPrice,
+		gasFeeCap:           gasFeeCap,
+		gasTipCap:           gasTipCap,
+		data:                data,
+		accessList:          accessList,
+		ethCompatible:       true,
+		isFake:              isFake,
+	}
+	return m
 }
 
 // AsMessage returns the transaction as a core.Message.
 func (tx *Transaction) AsMessage(s Signer, baseFee *big.Int) (Message, error) {
 	msg := Message{
-		nonce:      tx.Nonce(),
-		gasLimit:   tx.Gas(),
-		gasPrice:   new(big.Int).Set(tx.GasPrice()),
-		gasFeeCap:  new(big.Int).Set(tx.GasFeeCap()),
-		gasTipCap:  new(big.Int).Set(tx.GasTipCap()),
-		to:         tx.To(),
-		amount:     tx.Value(),
-		data:       tx.Data(),
-		accessList: tx.AccessList(),
-		isFake:     false,
+		nonce:               tx.Nonce(),
+		gasLimit:            tx.Gas(),
+		gasPrice:            new(big.Int).Set(tx.GasPrice()),
+		gasFeeCap:           new(big.Int).Set(tx.GasFeeCap()),
+		gasTipCap:           new(big.Int).Set(tx.GasTipCap()),
+		feeCurrency:         tx.FeeCurrency(),
+		gatewayFeeRecipient: tx.GatewayFeeRecipient(),
+		gatewayFee:          new(big.Int),
+		to:                  tx.To(),
+		amount:              tx.Value(),
+		data:                tx.Data(),
+		accessList:          tx.AccessList(),
+		isFake:              false,
+		ethCompatible:       tx.EthCompatible(),
 	}
 	// If baseFee provided, set gasPrice to effectiveGasPrice.
 	if baseFee != nil {
 		msg.gasPrice = math.BigMin(msg.gasPrice.Add(msg.gasTipCap, baseFee), msg.gasFeeCap)
+	}
+	if gatewayFee := tx.GatewayFee(); gatewayFee != nil {
+		msg.gatewayFee.Set(gatewayFee)
 	}
 	var err error
 	msg.from, err = Sender(s, tx)
 	return msg, err
 }
 
-func (m Message) From() common.Address   { return m.from }
-func (m Message) To() *common.Address    { return m.to }
-func (m Message) GasPrice() *big.Int     { return m.gasPrice }
-func (m Message) GasFeeCap() *big.Int    { return m.gasFeeCap }
-func (m Message) GasTipCap() *big.Int    { return m.gasTipCap }
-func (m Message) Value() *big.Int        { return m.amount }
-func (m Message) Gas() uint64            { return m.gasLimit }
-func (m Message) Nonce() uint64          { return m.nonce }
-func (m Message) Data() []byte           { return m.data }
-func (m Message) AccessList() AccessList { return m.accessList }
-func (m Message) IsFake() bool           { return m.isFake }
+func (m Message) From() common.Address                 { return m.from }
+func (m Message) To() *common.Address                  { return m.to }
+func (m Message) GasPrice() *big.Int                   { return m.gasPrice }
+func (m Message) GasFeeCap() *big.Int                  { return m.gasFeeCap }
+func (m Message) GasTipCap() *big.Int                  { return m.gasTipCap }
+func (m Message) EthCompatible() bool                  { return m.ethCompatible }
+func (m Message) FeeCurrency() *common.Address         { return m.feeCurrency }
+func (m Message) GatewayFeeRecipient() *common.Address { return m.gatewayFeeRecipient }
+func (m Message) GatewayFee() *big.Int                 { return m.gatewayFee }
+func (m Message) Value() *big.Int                      { return m.amount }
+func (m Message) Gas() uint64                          { return m.gasLimit }
+func (m Message) Nonce() uint64                        { return m.nonce }
+func (m Message) Data() []byte                         { return m.data }
+func (m Message) AccessList() AccessList               { return m.accessList }
+func (m Message) IsFake() bool                         { return m.isFake }
+
+func (m Message) Fee() *big.Int {
+	gasFee := new(big.Int).Mul(m.gasPrice, big.NewInt(int64(m.gasLimit)))
+	return gasFee.Add(gasFee, m.gatewayFee)
+}

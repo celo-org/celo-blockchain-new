@@ -40,12 +40,16 @@ type TransactionArgs struct {
 	GasPrice             *hexutil.Big    `json:"gasPrice"`
 	MaxFeePerGas         *hexutil.Big    `json:"maxFeePerGas"`
 	MaxPriorityFeePerGas *hexutil.Big    `json:"maxPriorityFeePerGas"`
+	FeeCurrency          *common.Address `json:"feeCurrency"`
+	GatewayFeeRecipient  *common.Address `json:"gatewayFeeRecipient"`
+	GatewayFee           *hexutil.Big    `json:"gatewayFee"`
 	Value                *hexutil.Big    `json:"value"`
 	Nonce                *hexutil.Uint64 `json:"nonce"`
+	EthCompatible        bool            `json:"ethCompatible"`
 
 	// We accept "data" and "input" for backwards-compatibility reasons.
 	// "input" is the newer name and should be preferred by clients.
-	// Issue detail: https://github.com/celo-org/celo-blockchain/issues/15628
+	// Issue detail: https://github.com/ethereum/go-ethereum/issues/15628
 	Data  *hexutil.Bytes `json:"data"`
 	Input *hexutil.Bytes `json:"input"`
 
@@ -75,6 +79,9 @@ func (arg *TransactionArgs) data() []byte {
 
 // setDefaults fills in default values for unspecified tx fields.
 func (args *TransactionArgs) setDefaults(ctx context.Context, b Backend) error {
+	if err := args.checkEthCompatibility(); err != nil {
+		return err
+	}
 	if args.GasPrice != nil && (args.MaxFeePerGas != nil || args.MaxPriorityFeePerGas != nil) {
 		return errors.New("both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified")
 	}
@@ -239,7 +246,7 @@ func (args *TransactionArgs) ToMessage(globalGasCap uint64, baseFee *big.Int) (t
 	if args.AccessList != nil {
 		accessList = *args.AccessList
 	}
-	msg := types.NewMessage(addr, args.To, 0, value, gas, gasPrice, gasFeeCap, gasTipCap, data, accessList, true)
+	msg := types.NewCeloMessage(addr, args.To, 0, value, gas, gasPrice, gasFeeCap, gasTipCap, args.FeeCurrency, args.GatewayFeeRecipient, args.GatewayFee.ToInt(), data, accessList, args.EthCompatible, true)
 	return msg, nil
 }
 
@@ -277,12 +284,18 @@ func (args *TransactionArgs) toTransaction() *types.Transaction {
 		}
 	default:
 		data = &types.LegacyTx{
-			To:       args.To,
-			Nonce:    uint64(*args.Nonce),
-			Gas:      uint64(*args.Gas),
-			GasPrice: (*big.Int)(args.GasPrice),
-			Value:    (*big.Int)(args.Value),
-			Data:     args.data(),
+			To:            args.To,
+			Nonce:         uint64(*args.Nonce),
+			Gas:           uint64(*args.Gas),
+			GasPrice:      (*big.Int)(args.GasPrice),
+			Value:         (*big.Int)(args.Value),
+			Data:          args.data(),
+			EthCompatible: args.EthCompatible,
+		}
+		if !args.EthCompatible {
+			data.(*types.LegacyTx).FeeCurrency = args.FeeCurrency
+			data.(*types.LegacyTx).GatewayFeeRecipient = args.GatewayFeeRecipient
+			data.(*types.LegacyTx).GatewayFee = args.GatewayFee.ToInt()
 		}
 	}
 	return types.NewTx(data)
@@ -292,4 +305,12 @@ func (args *TransactionArgs) toTransaction() *types.Transaction {
 // This assumes that setDefaults has been called.
 func (args *TransactionArgs) ToTransaction() *types.Transaction {
 	return args.toTransaction()
+}
+
+func (args *TransactionArgs) checkEthCompatibility() error {
+	// Reject if Celo-only fields set when EthCompatible is true
+	if args.EthCompatible && !(args.FeeCurrency == nil && args.GatewayFeeRecipient == nil && (args.GatewayFee == nil || args.GatewayFee.ToInt().Sign() == 0)) {
+		return types.ErrEthCompatibleTransactionIsntCompatible
+	}
+	return nil
 }
