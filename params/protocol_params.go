@@ -177,6 +177,8 @@ var (
 
 	// Celo registered contract IDs.
 	// The names are taken from celo-monorepo/packages/protocol/lib/registry-utils.ts
+
+	GoldTokenRegistryId = makeRegistryId("GoldToken")
 )
 
 func makeRegistryId(contractName string) [32]byte {

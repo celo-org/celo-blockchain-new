@@ -28,6 +28,7 @@ var (
 	ErrDepth                    = errors.New("max call depth exceeded")
 	ErrInsufficientBalance      = errors.New("insufficient balance for transfer")
 	ErrContractAddressCollision = errors.New("contract address collision")
+	ErrInputLength              = errors.New("invalid input length")
 	ErrExecutionReverted        = errors.New("execution reverted")
 	ErrMaxCodeSizeExceeded      = errors.New("max code size exceeded")
 	ErrInvalidJump              = errors.New("invalid jump destination")

@@ -20,9 +20,11 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/common/hexutil"
 	"github.com/celo-org/celo-blockchain/common/math"
 	"github.com/celo-org/celo-blockchain/crypto"
 	"github.com/celo-org/celo-blockchain/crypto/blake2b"
@@ -58,6 +60,8 @@ func celoPrecompileAddress(index byte) common.Address {
 
 var (
 	celoPrecompiledContractsAddressOffset = byte(0xff)
+
+	transferAddress = celoPrecompileAddress(2)
 )
 
 // PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
@@ -71,6 +75,9 @@ var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{6}): &bn256AddByzantium{},
 	common.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
 	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
+
+	// Celo Precompiled Contracts
+	transferAddress: &transfer{},
 }
 
 // PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
@@ -85,6 +92,9 @@ var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
 	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
 	common.BytesToAddress([]byte{9}): &blake2F{},
+
+	// Celo Precompiled Contracts
+	transferAddress: &transfer{},
 }
 
 // PrecompiledContractsBerlin contains the default set of pre-compiled Ethereum
@@ -541,6 +551,55 @@ func runBn256Pairing(input []byte, caller common.Address, evm *EVM) ([]byte, err
 		return true32Byte, nil
 	}
 	return false32Byte, nil
+}
+
+// Native transfer contract to make Celo Gold ERC20 compatible.
+type transfer struct{}
+
+func (c *transfer) RequiredGas(input []byte) uint64 {
+	return params.CallValueTransferGas
+}
+
+func (c *transfer) Run(input []byte, caller common.Address, evm *EVM) ([]byte, error) {
+	celoGoldAddress, err := evm.Context.GetRegisteredAddress(evm, params.GoldTokenRegistryId)
+	if err != nil {
+		return nil, err
+	}
+
+	// input is comprised of 3 arguments:
+	//   from:  32 bytes representing the address of the sender
+	//   to:    32 bytes representing the address of the recipient
+	//   value: 32 bytes, a 256 bit integer representing the amount of Celo Gold to transfer
+	// 3 arguments x 32 bytes each = 96 bytes total input
+	if (evm.chainRules.IsGFork && len(input) != 96) || len(input) < 96 {
+		return nil, ErrInputLength
+	}
+
+	if caller != celoGoldAddress {
+		return nil, fmt.Errorf("Unable to call transfer from unpermissioned address")
+	}
+	from := common.BytesToAddress(input[0:32])
+	to := common.BytesToAddress(input[32:64])
+
+	var parsed bool
+	value, parsed := math.ParseBig256(hexutil.Encode(input[64:96]))
+	if !parsed {
+		return nil, fmt.Errorf("Error parsing transfer: unable to parse value from " + hexutil.Encode(input[64:96]))
+	}
+
+	if from == common.ZeroAddress {
+		// Mint case: Create cGLD out of thin air
+		evm.StateDB.AddBalance(to, value)
+	} else {
+		// Fail if we're trying to transfer more than the available balance
+		if !evm.Context.CanTransfer(evm.StateDB, from, value) {
+			return nil, ErrInsufficientBalance
+		}
+
+		evm.Context.Transfer(evm, from, to, value)
+	}
+
+	return input, err
 }
 
 // bn256PairingIstanbul implements a pairing pre-compile for the bn256 curve

@@ -39,6 +39,9 @@ type (
 	// GetHashFunc returns the n'th block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
+
+	// GetRegisteredAddressFunc returns the address for a registered contract
+	GetRegisteredAddressFunc func(evm *EVM, registryId common.Hash) (common.Address, error)
 )
 
 func (evm *EVM) precompile(addr common.Address) (PrecompiledContract, bool) {
@@ -69,12 +72,13 @@ type BlockContext struct {
 	GetHash GetHashFunc
 
 	// Block information
-	Coinbase    common.Address // Provides information for COINBASE
-	GasLimit    uint64         // Provides information for GASLIMIT
-	BlockNumber *big.Int       // Provides information for NUMBER
-	Time        *big.Int       // Provides information for TIME
-	Difficulty  *big.Int       // Provides information for DIFFICULTY
-	BaseFee     *big.Int       // Provides information for BASEFEE
+	Coinbase             common.Address // Provides information for COINBASE
+	GasLimit             uint64         // Provides information for GASLIMIT
+	BlockNumber          *big.Int       // Provides information for NUMBER
+	Time                 *big.Int       // Provides information for TIME
+	Difficulty           *big.Int       // Provides information for DIFFICULTY
+	BaseFee              *big.Int       // Provides information for BASEFEE
+	GetRegisteredAddress GetRegisteredAddressFunc
 }
 
 // TxContext provides the EVM with information about a transaction.
