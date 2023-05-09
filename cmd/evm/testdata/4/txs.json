@@ -9,6 +9,7 @@
     "v" : "0x1b",
     "r" : "0x88544c93a564b4c28d2ffac2074a0c55fdd4658fe0d215596ed2e32e3ef7f56b",
     "s" : "0x7fb4075d54190f825d7c47bb820284757b34fd6293904a93cddb1d3aa961ac28",
-    "hash" : "0x72fadbef39cd251a437eea619cfeda752271a5faaaa2147df012e112159ffb81"
+    "hash" : "0x72fadbef39cd251a437eea619cfeda752271a5faaaa2147df012e112159ffb81",
+    "ethCompatible": true
   }
 ]

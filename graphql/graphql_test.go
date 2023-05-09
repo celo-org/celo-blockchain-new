@@ -323,6 +323,7 @@ func createGQLServiceWithTransactions(t *testing.T, stack *node.Node) {
 		Value:    big.NewInt(100),
 		Gas:      50000,
 		GasPrice: big.NewInt(params.InitialBaseFee),
+		EthCompatible: true,
 	})
 	envelopTx, _ := types.SignNewTx(key, signer, &types.AccessListTx{
 		ChainID:  ethConf.Genesis.Config.ChainID,

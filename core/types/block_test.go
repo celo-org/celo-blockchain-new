@@ -163,6 +163,7 @@ func TestEIP2718BlockEncoding(t *testing.T) {
 		Value:    big.NewInt(10),
 		Gas:      50000,
 		GasPrice: big.NewInt(10),
+		EthCompatible: true,
 	})
 	sig := common.Hex2Bytes("9bea4c4daac7c7c52e093e6a4c35dbbcf8856f1af7b059ba20253e70848d094f8a8fae537ce25ed8cb5af9adac3f141af69bd515bd2ba031522df09b97dd72b100")
 	tx1, _ = tx1.WithSignature(HomesteadSigner{}, sig)
