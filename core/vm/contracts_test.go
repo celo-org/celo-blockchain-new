@@ -29,6 +29,16 @@ import (
 
 var mockEVM = &EVM{}
 
+func loadJSON(name string) ([]precompiledTest, error) {
+	data, err := ioutil.ReadFile(fmt.Sprintf("testdata/precompiles/%v.json", name))
+	if err != nil {
+		return nil, err
+	}
+	var testcases []precompiledTest
+	err = json.Unmarshal(data, &testcases)
+	return testcases, err
+}
+
 // precompiledTest defines the input/output pairs for precompiled contract tests.
 type precompiledTest struct {
 	Input, Expected string
@@ -68,6 +78,20 @@ var allPrecompiles = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{16}):   &bls12381Pairing{},
 	common.BytesToAddress([]byte{17}):   &bls12381MapG1{},
 	common.BytesToAddress([]byte{18}):   &bls12381MapG2{},
+
+	// Celo Precompiled Contracts
+	transferAddress:       &transfer{},
+	fractionMulExpAddress: &fractionMulExp{},
+}
+
+func testJSON(name, addr string, t *testing.T) {
+	tests, err := loadJSON(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range tests {
+		testPrecompiled(addr, test, t)
+	}
 }
 
 // EIP-152 test vectors
@@ -283,6 +307,17 @@ func TestPrecompileBlake2FMalformedInput(t *testing.T) {
 }
 
 func TestPrecompiledEcrecover(t *testing.T) { testJson("ecRecover", "01", t) }
+
+// Tests sample inputs for fractionMulExp
+// NOTE: This currently only verifies that inputs of invalid length are rejected
+func TestPrecompiledFractionMulExp(t *testing.T) {
+	// Post GFork behaviour
+	mockEVM.chainRules.IsGFork = true
+	testJSON("fractionMulExp", "fc", t)
+	// Pre GFork behaviour
+	mockEVM.chainRules.IsGFork = false
+	testJSON("fractionMulExpOld", "fc", t)
+}
 
 func testJson(name, addr string, t *testing.T) {
 	tests, err := loadJson(name)

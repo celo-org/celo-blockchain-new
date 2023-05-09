@@ -61,7 +61,8 @@ func celoPrecompileAddress(index byte) common.Address {
 var (
 	celoPrecompiledContractsAddressOffset = byte(0xff)
 
-	transferAddress = celoPrecompileAddress(2)
+	transferAddress       = celoPrecompileAddress(2)
+	fractionMulExpAddress = celoPrecompileAddress(3)
 )
 
 // PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
@@ -77,7 +78,8 @@ var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
 
 	// Celo Precompiled Contracts
-	transferAddress: &transfer{},
+	transferAddress:       &transfer{},
+	fractionMulExpAddress: &fractionMulExp{},
 }
 
 // PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
@@ -94,7 +96,8 @@ var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{9}): &blake2F{},
 
 	// Celo Precompiled Contracts
-	transferAddress: &transfer{},
+	transferAddress:       &transfer{},
+	fractionMulExpAddress: &fractionMulExp{},
 }
 
 // PrecompiledContractsBerlin contains the default set of pre-compiled Ethereum
@@ -600,6 +603,117 @@ func (c *transfer) Run(input []byte, caller common.Address, evm *EVM) ([]byte, e
 	}
 
 	return input, err
+}
+
+// computes a * (b ^ exponent) to `decimals` places of precision, where a and b are fractions
+type fractionMulExp struct{}
+
+func max(x, y int64) int64 {
+	if x < y {
+		return y
+	}
+	return x
+}
+
+func (c *fractionMulExp) RequiredGas(input []byte) uint64 {
+	if len(input) < 192 {
+		return params.FractionMulExpGas
+	}
+	exponent, parsed := math.ParseBig256(hexutil.Encode(input[128:160]))
+	if !parsed {
+		return params.FractionMulExpGas
+	}
+	decimals, parsed := math.ParseBig256(hexutil.Encode(input[160:192]))
+	if !parsed {
+		return params.FractionMulExpGas
+	}
+	if !decimals.IsInt64() || !exponent.IsInt64() {
+		return params.FractionMulExpGas
+	}
+
+	numbers := max(decimals.Int64(), exponent.Int64())
+
+	if numbers > 100000 {
+		return params.FractionMulExpGas
+	}
+
+	gas := params.FractionMulExpGas
+
+	for numbers > 10 {
+		gas = gas * 3
+		numbers = numbers / 2
+	}
+
+	return gas
+}
+
+func (c *fractionMulExp) Run(input []byte, caller common.Address, evm *EVM) ([]byte, error) {
+	// input is comprised of 6 arguments:
+	//   aNumerator:   32 bytes, 256 bit integer, numerator for the first fraction (a)
+	//   aDenominator: 32 bytes, 256 bit integer, denominator for the first fraction (a)
+	//   bNumerator:   32 bytes, 256 bit integer, numerator for the second fraction (b)
+	//   bDenominator: 32 bytes, 256 bit integer, denominator for the second fraction (b)
+	//   exponent:     32 bytes, 256 bit integer, exponent to raise the second fraction (b) to
+	//   decimals:     32 bytes, 256 bit integer, places of precision
+	//
+	// 6 args x 32 bytes each = 192 bytes total input length
+	if (evm.chainRules.IsGFork && len(input) != 192) || len(input) < 192 {
+		return nil, ErrInputLength
+	}
+
+	parseErrorStr := "Error parsing input: unable to parse %s value from %s"
+
+	aNumerator, parsed := math.ParseBig256(hexutil.Encode(input[0:32]))
+	if !parsed {
+		return nil, fmt.Errorf(parseErrorStr, "aNumerator", hexutil.Encode(input[0:32]))
+	}
+
+	aDenominator, parsed := math.ParseBig256(hexutil.Encode(input[32:64]))
+	if !parsed {
+		return nil, fmt.Errorf(parseErrorStr, "aDenominator", hexutil.Encode(input[32:64]))
+	}
+
+	bNumerator, parsed := math.ParseBig256(hexutil.Encode(input[64:96]))
+	if !parsed {
+		return nil, fmt.Errorf(parseErrorStr, "bNumerator", hexutil.Encode(input[64:96]))
+	}
+
+	bDenominator, parsed := math.ParseBig256(hexutil.Encode(input[96:128]))
+	if !parsed {
+		return nil, fmt.Errorf(parseErrorStr, "bDenominator", hexutil.Encode(input[96:128]))
+	}
+
+	exponent, parsed := math.ParseBig256(hexutil.Encode(input[128:160]))
+	if !parsed {
+		return nil, fmt.Errorf(parseErrorStr, "exponent", hexutil.Encode(input[128:160]))
+	}
+
+	decimals, parsed := math.ParseBig256(hexutil.Encode(input[160:192]))
+	if !parsed {
+		return nil, fmt.Errorf(parseErrorStr, "decimals", hexutil.Encode(input[160:192]))
+	}
+
+	// Handle passing of zero denominators
+	if aDenominator == big.NewInt(0) || bDenominator == big.NewInt(0) {
+		return nil, fmt.Errorf("Input Error: Denominator of zero provided!")
+	}
+
+	if !decimals.IsInt64() || !exponent.IsInt64() || max(decimals.Int64(), exponent.Int64()) > 100000 {
+		return nil, fmt.Errorf("Input Error: Decimals or exponent too large")
+	}
+
+	numeratorExp := new(big.Int).Mul(aNumerator, new(big.Int).Exp(bNumerator, exponent, nil))
+	denominatorExp := new(big.Int).Mul(aDenominator, new(big.Int).Exp(bDenominator, exponent, nil))
+
+	decimalAdjustment := new(big.Int).Exp(big.NewInt(10), decimals, nil)
+
+	numeratorDecimalAdjusted := new(big.Int).Div(new(big.Int).Mul(numeratorExp, decimalAdjustment), denominatorExp).Bytes()
+	denominatorDecimalAdjusted := decimalAdjustment.Bytes()
+
+	numeratorPadded := common.LeftPadBytes(numeratorDecimalAdjusted, 32)
+	denominatorPadded := common.LeftPadBytes(denominatorDecimalAdjusted, 32)
+
+	return append(numeratorPadded, denominatorPadded...), nil
 }
 
 // bn256PairingIstanbul implements a pairing pre-compile for the bn256 curve
