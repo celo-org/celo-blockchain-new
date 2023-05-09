@@ -1,0 +1,4 @@
+From: Paul Lange <palango@gmx.de>
+Subject: [PATCH] t/pop-precompile
+
+Add `proofOfPossession` precompile
