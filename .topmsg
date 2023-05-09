@@ -1,0 +1,4 @@
+From: Valentin Rodygin <valentin@clabs.co>
+Subject: [PATCH] t/contract-calling
+
+[feature] Smart contract calling scaffolding

@@ -90,6 +90,8 @@ type Backend interface {
 	SubscribeRemovedLogsEvent(ch chan<- core.RemovedLogsEvent) event.Subscription
 
 	ChainConfig() *params.ChainConfig
+	
+	NewEVMRunner(*types.Header, vm.StateDB) vm.EVMRunner
 	Engine() consensus.Engine
 }
 
