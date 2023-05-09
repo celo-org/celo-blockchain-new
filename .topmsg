@@ -1,4 +1,0 @@
-From: Paul Lange <palango@gmx.de>
-Subject: [PATCH] t/frac-mul-exp-precompile
-
-Add fractional-mult-exp precompile
