@@ -1,4 +1,0 @@
-From: Paul Lange <palango@gmx.de>
-Subject: [PATCH] t/transfer-precompile
-
-Add `transfer` precompile
