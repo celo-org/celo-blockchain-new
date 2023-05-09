@@ -6,10 +6,12 @@ import (
 
 	"github.com/celo-org/celo-blockchain/accounts/abi"
 	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/params"
 )
 
 var (
-	Registry *abi.ABI = mustParseAbi("Registry", RegistryStr)
+	Registry             *abi.ABI = mustParseAbi("Registry", RegistryStr)
+	BlockchainParameters *abi.ABI = mustParseAbi("BlockchainParameters", BlockchainParametersStr)
 )
 
 func mustParseAbi(name, abiStr string) *abi.ABI {
@@ -20,7 +22,9 @@ func mustParseAbi(name, abiStr string) *abi.ABI {
 	return &parsedAbi
 }
 
-var byRegistryId = map[common.Hash]*abi.ABI{}
+var byRegistryId = map[common.Hash]*abi.ABI{
+	params.BlockchainParametersRegistryId: BlockchainParameters,
+}
 
 func AbiFor(registryId common.Hash) *abi.ABI {
 	found, ok := byRegistryId[registryId]
