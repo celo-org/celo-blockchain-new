@@ -144,10 +144,10 @@ func (e *GenesisMismatchError) Error() string {
 // SetupGenesisBlock writes or updates the genesis block in db.
 // The block that will be used is:
 //
-//                          genesis == nil       genesis != nil
-//                       +------------------------------------------
-//     db has no genesis |  main-net default  |  genesis
-//     db has genesis    |  from DB           |  genesis (if compatible)
+//	                     genesis == nil       genesis != nil
+//	                  +------------------------------------------
+//	db has no genesis |  main-net default  |  genesis
+//	db has genesis    |  from DB           |  genesis (if compatible)
 //
 // The stored chain configuration will be updated if it is compatible (i.e. does not
 // specify a fork block below the local head block). In case of a conflict, the
@@ -360,8 +360,8 @@ func MainnetGenesisBlock() *Genesis {
 		Nonce:      66,
 		GasLimit:   5000,
 		Difficulty: big.NewInt(17179869184),
-		ExtraData: hexutil.MustDecode(mainnetExtraData),
-		Alloc:     *mainnetAlloc,
+		ExtraData:  hexutil.MustDecode(mainnetExtraData),
+		Alloc:      *mainnetAlloc,
 	}
 }
 
@@ -374,8 +374,8 @@ func DefaultBaklavaGenesisBlock() *Genesis {
 		Nonce:      66,
 		GasLimit:   16777216,
 		Difficulty: big.NewInt(1048576),
-		ExtraData: hexutil.MustDecode(baklavaExtraData),
-		Alloc:     *baklavaAlloc,
+		ExtraData:  hexutil.MustDecode(baklavaExtraData),
+		Alloc:      *baklavaAlloc,
 	}
 }
 
@@ -387,8 +387,8 @@ func DefaultAlfajoresGenesisBlock() *Genesis {
 		Timestamp:  1492009146,
 		GasLimit:   4700000,
 		Difficulty: big.NewInt(1),
-		ExtraData: hexutil.MustDecode(alfajoresExtraData),
-		Alloc:     *alfajoresAlloc,
+		ExtraData:  hexutil.MustDecode(alfajoresExtraData),
+		Alloc:      *alfajoresAlloc,
 	}
 }
 
@@ -403,7 +403,8 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 	// Override the default period to the user requested one
 	config.Clique = &params.CliqueConfig{
 		Period: period,
-		Epoch:  config.Clique.Epoch,
+		// Epoch:  config.Clique.Epoch,
+		Epoch: 30000,
 	}
 
 	// Assemble and return the genesis with the precompiles and faucet pre-funded
