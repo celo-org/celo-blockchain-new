@@ -69,10 +69,6 @@ var (
 		MuirGlacierBlock:    big.NewInt(9_200_000),
 		BerlinBlock:         big.NewInt(12_244_000),
 		LondonBlock:         big.NewInt(12_965_000),
-		ChurritoBlock:       nil,
-		DonutBlock:          nil,
-		EspressoBlock:       nil,
-		GForkBlock:          nil,
 		Ethash:              new(EthashConfig),
 	}
 
@@ -229,16 +225,16 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil, nil, nil, nil, nil}
+	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}, nil, nil, nil, nil, nil}
+	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil, nil, nil, nil, nil}
+	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 
@@ -321,13 +317,8 @@ type ChainConfig struct {
 	CatalystBlock *big.Int `json:"catalystBlock,omitempty"` // Catalyst switch block (nil = no fork, 0 = already on catalyst)
 
 	// Various consensus engines
-	Ethash        *EthashConfig `json:"ethash,omitempty"`
-	Clique        *CliqueConfig `json:"clique,omitempty"`
-	EWASMBlock    *big.Int      `json:"ewasmBlock,omitempty"`    // EWASM switch block (nil = no fork, 0 = already activated)
-	ChurritoBlock *big.Int      `json:"churritoBlock,omitempty"` // Churrito switch block (nil = no fork, 0 = already activated)
-	DonutBlock    *big.Int      `json:"donutBlock,omitempty"`    // Donut switch block (nil = no fork, 0 = already activated)
-	EspressoBlock *big.Int      `json:"espressoBlock,omitempty"` // Espresso switch block (nil = no fork, 0 = already activated)
-	GForkBlock    *big.Int      `json:"gForkBlock,omitempty"`    // G Fork switch block (nil = no fork, 0 = already activated)
+	Ethash *EthashConfig `json:"ethash,omitempty"`
+	Clique *CliqueConfig `json:"clique,omitempty"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
@@ -446,31 +437,6 @@ func (c *ChainConfig) IsCatalyst(num *big.Int) bool {
 	return isForked(c.CatalystBlock, num)
 }
 
-// IsEWASM returns whether num represents a block number after the EWASM fork
-func (c *ChainConfig) IsEWASM(num *big.Int) bool {
-	return isForked(c.EWASMBlock, num)
-}
-
-// IsChurrito returns whether num represents a block number after the Churrito fork
-func (c *ChainConfig) IsChurrito(num *big.Int) bool {
-	return isForked(c.ChurritoBlock, num)
-}
-
-// IsDonut returns whether num represents a block number after the Donut fork
-func (c *ChainConfig) IsDonut(num *big.Int) bool {
-	return isForked(c.DonutBlock, num)
-}
-
-// IsEspresso returns whether num represents a block number after the Espresso fork
-func (c *ChainConfig) IsEspresso(num *big.Int) bool {
-	return isForked(c.EspressoBlock, num)
-}
-
-// IsGFork returns whether num represents a block number after the G fork
-func (c *ChainConfig) IsGFork(num *big.Int) bool {
-	return isForked(c.GForkBlock, num)
-}
-
 // CheckCompatible checks whether scheduled fork transitions have been imported
 // with a mismatching chain configuration.
 func (c *ChainConfig) CheckCompatible(newcfg *ChainConfig, height uint64) *ConfigCompatError {
@@ -511,10 +477,6 @@ func (c *ChainConfig) CheckConfigForkOrder() error {
 		{name: "muirGlacierBlock", block: c.MuirGlacierBlock, optional: true},
 		{name: "berlinBlock", block: c.BerlinBlock},
 		{name: "londonBlock", block: c.LondonBlock},
-		{name: "churritoBlock", block: c.ChurritoBlock},
-		{name: "donutBlock", block: c.DonutBlock},
-		{name: "espressoBlock", block: c.EspressoBlock},
-		{name: "gForkBlock", block: c.GForkBlock},
 	} {
 		if lastFork.name != "" {
 			// Next one must be higher number
@@ -584,21 +546,6 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	if isForkIncompatible(c.LondonBlock, newcfg.LondonBlock, head) {
 		return newCompatError("London fork block", c.LondonBlock, newcfg.LondonBlock)
 	}
-	if isForkIncompatible(c.EWASMBlock, newcfg.EWASMBlock, head) {
-		return newCompatError("ewasm fork block", c.EWASMBlock, newcfg.EWASMBlock)
-	}
-	if isForkIncompatible(c.ChurritoBlock, newcfg.ChurritoBlock, head) {
-		return newCompatError("Churrito fork block", c.ChurritoBlock, newcfg.ChurritoBlock)
-	}
-	if isForkIncompatible(c.DonutBlock, newcfg.DonutBlock, head) {
-		return newCompatError("Donut fork block", c.DonutBlock, newcfg.DonutBlock)
-	}
-	if isForkIncompatible(c.EspressoBlock, newcfg.EspressoBlock, head) {
-		return newCompatError("Espresso fork block", c.EspressoBlock, newcfg.EspressoBlock)
-	}
-	if isForkIncompatible(c.GForkBlock, newcfg.GForkBlock, head) {
-		return newCompatError("G fork block", c.GForkBlock, newcfg.GForkBlock)
-	}
 	return nil
 }
 
@@ -667,7 +614,6 @@ type Rules struct {
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158               bool
 	IsByzantium, IsConstantinople, IsPetersburg, IsIstanbul bool
 	IsBerlin, IsLondon, IsCatalyst                          bool
-	IsChurrito, IsDonut, IsEspresso, IsGFork                bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -689,9 +635,5 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsBerlin:         c.IsBerlin(num),
 		IsLondon:         c.IsLondon(num),
 		IsCatalyst:       c.IsCatalyst(num),
-		IsChurrito:       c.IsChurrito(num),
-		IsDonut:          c.IsDonut(num),
-		IsEspresso:       c.IsEspresso(num),
-		IsGFork:          c.IsGFork(num),
 	}
 }
