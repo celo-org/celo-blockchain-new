@@ -6,8 +6,10 @@ import (
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/celo-org/celo-blockchain/consensus"
 	"github.com/celo-org/celo-blockchain/contracts"
+	"github.com/celo-org/celo-blockchain/contracts/reserve"
 	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/celo-org/celo-blockchain/core/vm"
+	"github.com/celo-org/celo-blockchain/log"
 	"github.com/celo-org/celo-blockchain/params"
 )
 
@@ -42,7 +44,7 @@ func NewBlockContext(header *types.Header, chain chainContext, author *common.Ad
 	}
 	return vm.BlockContext{
 		CanTransfer: CanTransfer,
-		Transfer:    Transfer,
+		Transfer:    TobinTransfer,
 		GetHash:     GetHashFn(header, chain),
 		Coinbase:    beneficiary,
 		BlockNumber: new(big.Int).Set(header.Number),
@@ -102,4 +104,31 @@ func CanTransfer(db vm.StateDB, addr common.Address, amount *big.Int) bool {
 func Transfer(db vm.StateDB, sender, recipient common.Address, amount *big.Int) {
 	db.SubBalance(sender, amount)
 	db.AddBalance(recipient, amount)
+}
+
+// TobinTransfer performs a transfer that may take a tax from the sent amount and give it to the reserve.
+// If the calculation or transfer of the tax amount fails for any reason, the regular transfer goes ahead.
+// NB: Gas is not charged or accounted for this calculation.
+func TobinTransfer(evm *vm.EVM, sender, recipient common.Address, amount *big.Int) {
+	// Run only primary evm.Call() with tracer
+	if evm.GetDebug() {
+		evm.SetDebug(false)
+		defer func() { evm.SetDebug(true) }()
+	}
+
+	if amount.Cmp(big.NewInt(0)) != 0 {
+		caller := &SharedEVMRunner{evm}
+		tax, taxRecipient, err := reserve.ComputeTobinTax(caller, sender, amount)
+		if err == nil {
+			Transfer(evm.StateDB, sender, recipient, new(big.Int).Sub(amount, tax))
+			Transfer(evm.StateDB, sender, taxRecipient, tax)
+			return
+		} else {
+			log.Error("Failed to get tobin tax", "error", err)
+		}
+	}
+
+	// Complete a normal transfer if the amount is 0 or the tobin tax value is unable to be fetched and parsed.
+	// We transfer even when the amount is 0 because state trie clearing [EIP161] is necessary at the end of a transaction
+	Transfer(evm.StateDB, sender, recipient, amount)
 }
