@@ -153,6 +153,10 @@ const (
 	FractionMulExpGas    uint64 = 50     // Cost of performing multiplication and exponentiation of fractions to an exponent of up to 10^3.
 	ProofOfPossessionGas uint64 = 350000 // Cost of verifying a BLS proof of possession.
 
+	Ed25519VerifyGas         uint64 = 1500             // Gas needed for and Ed25519 signature verification
+	Sha2_512BaseGas          uint64 = Sha256BaseGas    // Base price for a Sha2-512 operation
+	Sha2_512PerWordGas       uint64 = Sha256PerWordGas // Per-word price for a Sha2-512 operation
+
 	Bls12381G1AddGas          uint64 = 600    // Price for BLS12-381 elliptic curve G1 point addition
 	Bls12381G1MulGas          uint64 = 12000  // Price for BLS12-381 elliptic curve G1 point scalar multiplication
 	Bls12381G2AddGas          uint64 = 4500   // Price for BLS12-381 elliptic curve G2 point addition
