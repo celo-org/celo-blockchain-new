@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	Registry 						 *abi.ABI = mustParseAbi("Registry", RegistryStr)
+	Registry             *abi.ABI = mustParseAbi("Registry", RegistryStr)
 	BlockchainParameters *abi.ABI = mustParseAbi("BlockchainParameters", BlockchainParametersStr)
 )
 
