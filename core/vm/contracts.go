@@ -153,20 +153,6 @@ var PrecompiledContractsEspresso = map[common.Address]PrecompiledContract{
 	ed25519Address: &ed25519Verify{},
 }
 
-// PrecompiledContractsBerlin contains the default set of pre-compiled Ethereum
-// contracts used in the Berlin release.
-var PrecompiledContractsBerlin = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: true},
-	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}): &blake2F{},
-}
-
 // PrecompiledContractsBLS contains the set of pre-compiled Ethereum
 // contracts specified in EIP-2537. These are exported for testing purposes.
 var PrecompiledContractsBLS = map[common.Address]PrecompiledContract{
@@ -184,7 +170,6 @@ var PrecompiledContractsBLS = map[common.Address]PrecompiledContract{
 var (
 	PrecompiledAddressesEspresso  []common.Address
 	PrecompiledAddressesDonut     []common.Address
-	PrecompiledAddressesBerlin    []common.Address
 	PrecompiledAddressesIstanbul  []common.Address
 	PrecompiledAddressesByzantium []common.Address
 	PrecompiledAddressesHomestead []common.Address
@@ -199,9 +184,6 @@ func init() {
 	}
 	for k := range PrecompiledContractsIstanbul {
 		PrecompiledAddressesIstanbul = append(PrecompiledAddressesIstanbul, k)
-	}
-	for k := range PrecompiledContractsBerlin {
-		PrecompiledAddressesBerlin = append(PrecompiledAddressesBerlin, k)
 	}
 	for k := range PrecompiledContractsDonut {
 		PrecompiledAddressesDonut = append(PrecompiledAddressesDonut, k)
@@ -218,8 +200,6 @@ func ActivePrecompiles(rules params.Rules) []common.Address {
 		return PrecompiledAddressesEspresso
 	case rules.IsDonut:
 		return PrecompiledAddressesDonut
-	case rules.IsBerlin:
-		return PrecompiledAddressesBerlin
 	case rules.IsIstanbul:
 		return PrecompiledAddressesIstanbul
 	case rules.IsByzantium:
