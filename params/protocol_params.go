@@ -179,6 +179,7 @@ var (
 
 	// Celo registered contract IDs.
 	// The names are taken from celo-monorepo/packages/protocol/lib/registry-utils.ts
+	BlockchainParametersRegistryId = makeRegistryId("BlockchainParameters")
 	ReserveRegistryId              = makeRegistryId("Reserve")
 
 	// Function is "getOrComputeTobinTax()"
@@ -204,4 +205,5 @@ const (
 	// Contract communication gas limits
 	MaxGasForGetAddressFor                         uint64 = 100 * thousand
 	MaxGasForGetOrComputeTobinTax                  uint64 = 1 * million
+	MaxGasForReadBlockchainParameter               uint64 = 40 * thousand // ad-hoc measurement is ~26k
 )
