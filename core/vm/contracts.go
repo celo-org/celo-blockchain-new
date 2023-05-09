@@ -28,10 +28,12 @@ import (
 	"github.com/celo-org/celo-blockchain/common/math"
 	"github.com/celo-org/celo-blockchain/crypto"
 	"github.com/celo-org/celo-blockchain/crypto/blake2b"
+	blscrypto "github.com/celo-org/celo-blockchain/crypto/bls"
 	"github.com/celo-org/celo-blockchain/crypto/bls12381"
 	"github.com/celo-org/celo-blockchain/crypto/bn256"
 	"github.com/celo-org/celo-blockchain/log"
 	"github.com/celo-org/celo-blockchain/params"
+	"github.com/celo-org/celo-bls-go/bls"
 
 	//lint:ignore SA1019 Needed for precompile
 	"golang.org/x/crypto/ripemd160"
@@ -61,8 +63,9 @@ func celoPrecompileAddress(index byte) common.Address {
 var (
 	celoPrecompiledContractsAddressOffset = byte(0xff)
 
-	transferAddress       = celoPrecompileAddress(2)
-	fractionMulExpAddress = celoPrecompileAddress(3)
+	transferAddress          = celoPrecompileAddress(2)
+	fractionMulExpAddress    = celoPrecompileAddress(3)
+	proofOfPossessionAddress = celoPrecompileAddress(4)
 )
 
 // PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
@@ -78,8 +81,9 @@ var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
 
 	// Celo Precompiled Contracts
-	transferAddress:       &transfer{},
-	fractionMulExpAddress: &fractionMulExp{},
+	transferAddress:          &transfer{},
+	fractionMulExpAddress:    &fractionMulExp{},
+	proofOfPossessionAddress: &proofOfPossession{},
 }
 
 // PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
@@ -96,8 +100,9 @@ var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{9}): &blake2F{},
 
 	// Celo Precompiled Contracts
-	transferAddress:       &transfer{},
-	fractionMulExpAddress: &fractionMulExp{},
+	transferAddress:          &transfer{},
+	fractionMulExpAddress:    &fractionMulExp{},
+	proofOfPossessionAddress: &proofOfPossession{},
 }
 
 // PrecompiledContractsBerlin contains the default set of pre-compiled Ethereum
@@ -714,6 +719,45 @@ func (c *fractionMulExp) Run(input []byte, caller common.Address, evm *EVM) ([]b
 	denominatorPadded := common.LeftPadBytes(denominatorDecimalAdjusted, 32)
 
 	return append(numeratorPadded, denominatorPadded...), nil
+}
+
+type proofOfPossession struct{}
+
+func (c *proofOfPossession) RequiredGas(input []byte) uint64 {
+	return params.ProofOfPossessionGas
+}
+
+func (c *proofOfPossession) Run(input []byte, caller common.Address, evm *EVM) ([]byte, error) {
+	// input is comprised of 3 arguments:
+	//   address:   20 bytes, an address used to generate the proof-of-possession
+	//   publicKey: 96 bytes, representing the public key (defined as a const in bls package)
+	//   signature: 48 bytes, representing the signature on `address` (defined as a const in bls package)
+	// the total length of input required is the sum of these constants
+	if len(input) != common.AddressLength+blscrypto.PUBLICKEYBYTES+blscrypto.SIGNATUREBYTES {
+		return nil, ErrInputLength
+	}
+	addressBytes := input[:common.AddressLength]
+
+	publicKeyBytes := input[common.AddressLength : common.AddressLength+blscrypto.PUBLICKEYBYTES]
+	publicKey, err := bls.DeserializePublicKeyCached(publicKeyBytes)
+	if err != nil {
+		return nil, err
+	}
+	defer publicKey.Destroy()
+
+	signatureBytes := input[common.AddressLength+blscrypto.PUBLICKEYBYTES : common.AddressLength+blscrypto.PUBLICKEYBYTES+blscrypto.SIGNATUREBYTES]
+	signature, err := bls.DeserializeSignature(signatureBytes)
+	if err != nil {
+		return nil, err
+	}
+	defer signature.Destroy()
+
+	err = publicKey.VerifyPoP(addressBytes, signature)
+	if err != nil {
+		return nil, err
+	}
+
+	return true32Byte, nil
 }
 
 // bn256PairingIstanbul implements a pairing pre-compile for the bn256 curve

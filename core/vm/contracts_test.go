@@ -80,8 +80,9 @@ var allPrecompiles = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{18}):   &bls12381MapG2{},
 
 	// Celo Precompiled Contracts
-	transferAddress:       &transfer{},
-	fractionMulExpAddress: &fractionMulExp{},
+	transferAddress:          &transfer{},
+	fractionMulExpAddress:    &fractionMulExp{},
+	proofOfPossessionAddress: &proofOfPossession{},
 }
 
 func testJSON(name, addr string, t *testing.T) {
@@ -318,6 +319,10 @@ func TestPrecompiledFractionMulExp(t *testing.T) {
 	mockEVM.chainRules.IsGFork = false
 	testJSON("fractionMulExpOld", "fc", t)
 }
+
+// Tests sample inputs for proofOfPossession
+// NOTE: This currently only verifies that inputs of invalid length are rejected
+func TestPrecompiledProofOfPossession(t *testing.T) { testJSON("proofOfPossession", "fb", t) }
 
 func testJson(name, addr string, t *testing.T) {
 	tests, err := loadJson(name)
