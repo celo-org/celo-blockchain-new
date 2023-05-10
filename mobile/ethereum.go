@@ -21,7 +21,7 @@ package geth
 import (
 	"errors"
 
-	"github.com/celo-org/celo-blockchain"
+	ethereum "github.com/celo-org/celo-blockchain"
 	"github.com/celo-org/celo-blockchain/common"
 )
 
