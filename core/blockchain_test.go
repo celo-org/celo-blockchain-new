@@ -1456,7 +1456,7 @@ func TestEIP161AccountRemoval(t *testing.T) {
 // tests that under weird reorg conditions the blockchain and its internal header-
 // chain return the same latest block/header.
 //
-// https://github.com/celo-org/celo-blockchain/pull/15941
+// https://github.com/ethereum/go-ethereum/pull/15941
 func TestBlockchainHeaderchainReorgConsistency(t *testing.T) {
 	// Generate a canonical chain to act as the main dataset
 	engine := ethash.NewFaker()
@@ -1738,8 +1738,8 @@ func TestInsertReceiptChainRollback(t *testing.T) {
 // overtake the 'canon' chain until after it's passed canon by about 200 blocks.
 //
 // Details at:
-//  - https://github.com/celo-org/celo-blockchain/issues/18977
-//  - https://github.com/celo-org/celo-blockchain/pull/18988
+//  - https://github.com/ethereum/go-ethereum/issues/18977
+//  - https://github.com/ethereum/go-ethereum/pull/18988
 func TestLowDiffLongChain(t *testing.T) {
 	// Generate a canonical chain to act as the main dataset
 	engine := ethash.NewFaker()

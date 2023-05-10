@@ -196,7 +196,7 @@ func testMissOracleBackend(t *testing.T, hasCheckpoint bool, protocol int) {
 	// that user wants to unlock something which blocks the oracle backend
 	// initialisation. But at the same time syncing starts.
 	//
-	// See https://github.com/celo-org/celo-blockchain/issues/20097 for more detail.
+	// See https://github.com/ethereum/go-ethereum/issues/20097 for more detail.
 	//
 	// In this case, client should run light sync or legacy checkpoint sync
 	// if hardcoded checkpoint is configured.
