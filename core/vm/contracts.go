@@ -69,7 +69,16 @@ var (
 	proofOfPossessionAddress = celoPrecompileAddress(4)
 
 	// New in Donut
-	ed25519Address = celoPrecompileAddress(12)
+	ed25519Address           = celoPrecompileAddress(12)
+	b12_381G1AddAddress      = celoPrecompileAddress(13)
+	b12_381G1MulAddress      = celoPrecompileAddress(14)
+	b12_381G1MultiExpAddress = celoPrecompileAddress(15)
+	b12_381G2AddAddress      = celoPrecompileAddress(16)
+	b12_381G2MulAddress      = celoPrecompileAddress(17)
+	b12_381G2MultiExpAddress = celoPrecompileAddress(18)
+	b12_381PairingAddress    = celoPrecompileAddress(19)
+	b12_381MapFpToG1Address  = celoPrecompileAddress(20)
+	b12_381MapFp2ToG2Address = celoPrecompileAddress(21)
 )
 
 // PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
@@ -128,7 +137,16 @@ var PrecompiledContractsDonut = map[common.Address]PrecompiledContract{
 	proofOfPossessionAddress: &proofOfPossession{},
 
 	// New in Donut hard fork
-	ed25519Address: &ed25519Verify{},
+	ed25519Address:           &ed25519Verify{},
+	b12_381G1AddAddress:      &bls12381G1Add{},
+	b12_381G1MulAddress:      &bls12381G1Mul{},
+	b12_381G1MultiExpAddress: &bls12381G1MultiExp{},
+	b12_381G2AddAddress:      &bls12381G2Add{},
+	b12_381G2MulAddress:      &bls12381G2Mul{},
+	b12_381G2MultiExpAddress: &bls12381G2MultiExp{},
+	b12_381PairingAddress:    &bls12381Pairing{},
+	b12_381MapFpToG1Address:  &bls12381MapG1{},
+	b12_381MapFp2ToG2Address: &bls12381MapG2{},
 }
 
 // PrecompiledContractsEspresso contains the default set of pre-compiled Ethereum
@@ -150,7 +168,16 @@ var PrecompiledContractsEspresso = map[common.Address]PrecompiledContract{
 	proofOfPossessionAddress: &proofOfPossession{},
 
 	// New in Donut hard fork
-	ed25519Address: &ed25519Verify{},
+	ed25519Address:           &ed25519Verify{},
+	b12_381G1AddAddress:      &bls12381G1Add{},
+	b12_381G1MulAddress:      &bls12381G1Mul{},
+	b12_381G1MultiExpAddress: &bls12381G1MultiExp{},
+	b12_381G2AddAddress:      &bls12381G2Add{},
+	b12_381G2MulAddress:      &bls12381G2Mul{},
+	b12_381G2MultiExpAddress: &bls12381G2MultiExp{},
+	b12_381PairingAddress:    &bls12381Pairing{},
+	b12_381MapFpToG1Address:  &bls12381MapG1{},
+	b12_381MapFp2ToG2Address: &bls12381MapG2{},
 }
 
 // PrecompiledContractsBLS contains the set of pre-compiled Ethereum
